@@ -1,0 +1,4 @@
+[submodule "xranc-sb-api"]
+	path = xranc-sb-api
+	url = https://github.com/OpenNetworkingFoundation/xranc-sb-api.git
+	branch = master
