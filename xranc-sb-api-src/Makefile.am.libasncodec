@@ -1,0 +1,282 @@
+ASN_MODULE_SRCS=	\
+	ECGI.c	\
+	PLMN-Identity.c	\
+	EUTRANCellIdentifier.c	\
+	PhysCellId.c	\
+	CRNTI.c	\
+	QCI.c	\
+	BitRate.c	\
+	ERAB-ID.c	\
+	RSRP-Range.c	\
+	RSRQ-Range.c	\
+	ENB-UE-S1AP-ID.c	\
+	MME-UE-S1AP-ID.c	\
+	ARFCN-Value.c	\
+	Q-OffsetRange.c	\
+	ThresholdEUTRA.c	\
+	Hysteresis.c	\
+	TimeToTrigger.c	\
+	DuplexMode.c	\
+	CandScell.c	\
+	PCI-ARFCN.c	\
+	AdmEstCause.c	\
+	AdmEstResponse.c	\
+	AdmEstStatus.c	\
+	ReconfIndReason.c	\
+	RelCause.c	\
+	UEAMBR.c	\
+	ERABDirection.c	\
+	ERABType.c	\
+	ERABParams-Item.c	\
+	ERABParams.c	\
+	ERABDecision.c	\
+	ERABResponse-Item.c	\
+	ERABResponse.c	\
+	HOFailureCause.c	\
+	L2MeasReportInterval.c	\
+	L2ReportInterval.c	\
+	RXSigReport.c	\
+	RadioRepPerServCell.c	\
+	PRBUsage.c	\
+	SchedMeasRepPerServCell.c	\
+	XICIC-PA.c	\
+	CACap.c	\
+	PropScell.c	\
+	DCCap.c	\
+	TrafficSplitPercentage.c	\
+	MeasObject.c	\
+	ReportConfig.c	\
+	PerParam.c	\
+	A1Param.c	\
+	A2Param.c	\
+	A3Param.c	\
+	A4Param.c	\
+	A5Param.c	\
+	A6Param.c	\
+	MeasID.c	\
+	CellConfigRequest.c	\
+	CellConfigReport.c	\
+	UECapabilityEnquiry.c	\
+	UECapabilityInfo.c	\
+	UEAdmissionRequest.c	\
+	UEAdmissionResponse.c	\
+	UEAdmissionStatus.c	\
+	UEContextUpdate.c	\
+	UEReconfigInd.c	\
+	UEReleaseInd.c	\
+	BearerAdmissionRequest.c	\
+	BearerAdmissionResponse.c	\
+	BearerAdmissionStatus.c	\
+	BearerReleaseInd.c	\
+	HORequest.c	\
+	HOFailure.c	\
+	HOComplete.c	\
+	HOCause.c	\
+	RXSigMeasReport.c	\
+	L2MeasConfig.c	\
+	RadioMeasReportPerUE.c	\
+	RadioMeasReportPerCell.c	\
+	SchedMeasReportPerUE.c	\
+	SchedMeasReportPerCell.c	\
+	PDCPMeasReportPerUe.c	\
+	ScellAdd.c	\
+	ScellAddStatus.c	\
+	ScellDelete.c	\
+	RRMConfig.c	\
+	RRMConfigStatus.c	\
+	SeNBAdd.c	\
+	SeNBAddStatus.c	\
+	SeNBDelete.c	\
+	TrafficSplitConfig.c	\
+	RRCMeasConfig.c	\
+	XRANC-API-ID.c	\
+	XRANCPDUHdr.c	\
+	XRANCPDUBody.c	\
+	XRANCPDU.c
+
+ASN_MODULE_HDRS=	\
+	ECGI.h	\
+	PLMN-Identity.h	\
+	EUTRANCellIdentifier.h	\
+	PhysCellId.h	\
+	CRNTI.h	\
+	QCI.h	\
+	BitRate.h	\
+	ERAB-ID.h	\
+	RSRP-Range.h	\
+	RSRQ-Range.h	\
+	ENB-UE-S1AP-ID.h	\
+	MME-UE-S1AP-ID.h	\
+	ARFCN-Value.h	\
+	Q-OffsetRange.h	\
+	ThresholdEUTRA.h	\
+	Hysteresis.h	\
+	TimeToTrigger.h	\
+	DuplexMode.h	\
+	CandScell.h	\
+	PCI-ARFCN.h	\
+	AdmEstCause.h	\
+	AdmEstResponse.h	\
+	AdmEstStatus.h	\
+	ReconfIndReason.h	\
+	RelCause.h	\
+	UEAMBR.h	\
+	ERABDirection.h	\
+	ERABType.h	\
+	ERABParams-Item.h	\
+	ERABParams.h	\
+	ERABDecision.h	\
+	ERABResponse-Item.h	\
+	ERABResponse.h	\
+	HOFailureCause.h	\
+	L2MeasReportInterval.h	\
+	L2ReportInterval.h	\
+	RXSigReport.h	\
+	RadioRepPerServCell.h	\
+	PRBUsage.h	\
+	SchedMeasRepPerServCell.h	\
+	XICIC-PA.h	\
+	CACap.h	\
+	PropScell.h	\
+	DCCap.h	\
+	TrafficSplitPercentage.h	\
+	MeasObject.h	\
+	ReportConfig.h	\
+	PerParam.h	\
+	A1Param.h	\
+	A2Param.h	\
+	A3Param.h	\
+	A4Param.h	\
+	A5Param.h	\
+	A6Param.h	\
+	MeasID.h	\
+	CellConfigRequest.h	\
+	CellConfigReport.h	\
+	UECapabilityEnquiry.h	\
+	UECapabilityInfo.h	\
+	UEAdmissionRequest.h	\
+	UEAdmissionResponse.h	\
+	UEAdmissionStatus.h	\
+	UEContextUpdate.h	\
+	UEReconfigInd.h	\
+	UEReleaseInd.h	\
+	BearerAdmissionRequest.h	\
+	BearerAdmissionResponse.h	\
+	BearerAdmissionStatus.h	\
+	BearerReleaseInd.h	\
+	HORequest.h	\
+	HOFailure.h	\
+	HOComplete.h	\
+	HOCause.h	\
+	RXSigMeasReport.h	\
+	L2MeasConfig.h	\
+	RadioMeasReportPerUE.h	\
+	RadioMeasReportPerCell.h	\
+	SchedMeasReportPerUE.h	\
+	SchedMeasReportPerCell.h	\
+	PDCPMeasReportPerUe.h	\
+	ScellAdd.h	\
+	ScellAddStatus.h	\
+	ScellDelete.h	\
+	RRMConfig.h	\
+	RRMConfigStatus.h	\
+	SeNBAdd.h	\
+	SeNBAddStatus.h	\
+	SeNBDelete.h	\
+	TrafficSplitConfig.h	\
+	RRCMeasConfig.h	\
+	XRANC-API-ID.h	\
+	XRANCPDUHdr.h	\
+	XRANCPDUBody.h	\
+	XRANCPDU.h
+
+ASN_MODULE_HDRS+=OPEN_TYPE.h
+ASN_MODULE_SRCS+=OPEN_TYPE.c
+ASN_MODULE_HDRS+=constr_CHOICE.h
+ASN_MODULE_HDRS+=BOOLEAN.h
+ASN_MODULE_SRCS+=BOOLEAN.c
+ASN_MODULE_HDRS+=INTEGER.h
+ASN_MODULE_SRCS+=INTEGER.c
+ASN_MODULE_HDRS+=NativeEnumerated.h
+ASN_MODULE_SRCS+=NativeEnumerated.c
+ASN_MODULE_HDRS+=NativeInteger.h
+ASN_MODULE_SRCS+=NativeInteger.c
+ASN_MODULE_HDRS+=UTF8String.h
+ASN_MODULE_SRCS+=UTF8String.c
+ASN_MODULE_HDRS+=OCTET_STRING.h
+ASN_MODULE_HDRS+=asn_SEQUENCE_OF.h
+ASN_MODULE_SRCS+=asn_SEQUENCE_OF.c
+ASN_MODULE_HDRS+=asn_SET_OF.h
+ASN_MODULE_SRCS+=asn_SET_OF.c
+ASN_MODULE_SRCS+=constr_CHOICE.c
+ASN_MODULE_HDRS+=constr_SEQUENCE.h
+ASN_MODULE_SRCS+=constr_SEQUENCE.c
+ASN_MODULE_HDRS+=constr_SEQUENCE_OF.h
+ASN_MODULE_SRCS+=constr_SEQUENCE_OF.c
+ASN_MODULE_HDRS+=constr_SET_OF.h
+ASN_MODULE_SRCS+=constr_SET_OF.c
+ASN_MODULE_HDRS+=asn_application.h
+ASN_MODULE_SRCS+=asn_application.c
+ASN_MODULE_HDRS+=asn_ioc.h
+ASN_MODULE_HDRS+=asn_system.h
+ASN_MODULE_HDRS+=asn_codecs.h
+ASN_MODULE_HDRS+=asn_internal.h
+ASN_MODULE_SRCS+=asn_internal.c
+ASN_MODULE_HDRS+=asn_random_fill.h
+ASN_MODULE_SRCS+=asn_random_fill.c
+ASN_MODULE_HDRS+=asn_bit_data.h
+ASN_MODULE_SRCS+=asn_bit_data.c
+ASN_MODULE_SRCS+=OCTET_STRING.c
+ASN_MODULE_HDRS+=BIT_STRING.h
+ASN_MODULE_SRCS+=BIT_STRING.c
+ASN_MODULE_SRCS+=asn_codecs_prim.c
+ASN_MODULE_HDRS+=asn_codecs_prim.h
+ASN_MODULE_HDRS+=ber_tlv_length.h
+ASN_MODULE_SRCS+=ber_tlv_length.c
+ASN_MODULE_HDRS+=ber_tlv_tag.h
+ASN_MODULE_SRCS+=ber_tlv_tag.c
+ASN_MODULE_HDRS+=ber_decoder.h
+ASN_MODULE_SRCS+=ber_decoder.c
+ASN_MODULE_HDRS+=der_encoder.h
+ASN_MODULE_SRCS+=der_encoder.c
+ASN_MODULE_HDRS+=constr_TYPE.h
+ASN_MODULE_SRCS+=constr_TYPE.c
+ASN_MODULE_HDRS+=constraints.h
+ASN_MODULE_SRCS+=constraints.c
+ASN_MODULE_HDRS+=xer_support.h
+ASN_MODULE_SRCS+=xer_support.c
+ASN_MODULE_HDRS+=xer_decoder.h
+ASN_MODULE_SRCS+=xer_decoder.c
+ASN_MODULE_HDRS+=xer_encoder.h
+ASN_MODULE_SRCS+=xer_encoder.c
+ASN_MODULE_HDRS+=per_support.h
+ASN_MODULE_SRCS+=per_support.c
+ASN_MODULE_HDRS+=per_decoder.h
+ASN_MODULE_SRCS+=per_decoder.c
+ASN_MODULE_HDRS+=per_encoder.h
+ASN_MODULE_SRCS+=per_encoder.c
+ASN_MODULE_HDRS+=per_opentype.h
+ASN_MODULE_SRCS+=per_opentype.c
+ASN_MODULE_HDRS+=oer_decoder.h
+ASN_MODULE_HDRS+=oer_encoder.h
+ASN_MODULE_HDRS+=oer_support.h
+ASN_MODULE_SRCS+=oer_decoder.c
+ASN_MODULE_SRCS+=oer_encoder.c
+ASN_MODULE_SRCS+=oer_support.c
+ASN_MODULE_SRCS+=OPEN_TYPE_oer.c
+ASN_MODULE_SRCS+=INTEGER_oer.c
+ASN_MODULE_SRCS+=BIT_STRING_oer.c
+ASN_MODULE_SRCS+=OCTET_STRING_oer.c
+ASN_MODULE_SRCS+=NativeInteger_oer.c
+ASN_MODULE_SRCS+=NativeEnumerated_oer.c
+ASN_MODULE_SRCS+=constr_CHOICE_oer.c
+ASN_MODULE_SRCS+=constr_SEQUENCE_oer.c
+ASN_MODULE_SRCS+=constr_SET_OF_oer.c
+
+ASN_MODULE_CFLAGS=
+
+lib_LTLIBRARIES+=libasncodec.la
+libasncodec_la_SOURCES=$(ASN_MODULE_SRCS) $(ASN_MODULE_HDRS)
+libasncodec_la_CPPFLAGS=-I$(top_srcdir)/
+libasncodec_la_CFLAGS=$(ASN_MODULE_CFLAGS)
+libasncodec_la_LDFLAGS=-lm
