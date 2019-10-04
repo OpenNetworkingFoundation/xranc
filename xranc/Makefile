@@ -1,21 +1,21 @@
+CXX = g++
+LD = g++
+CXXFLAGS = -Wall -Wextra -std=c++11
+CXXFLAGS += -DPDU=XRANCPDU -I. -I../xranc-sb-api-src
 LIBS += -lm
-CFLAGS += $(ASN_MODULE_CFLAGS) -DPDU=XRANCPDU -I. -I../xranc-sb-api-src
 ASN_LIBRARY ?= libasncodec.a
 XRANC_PROGRAM ?= xranc
-XRANC_PROGRAM_SRCS ?= \
-	main.c
+#XRANC_PROGRAM_SRCS ?= main.cpp server.cpp
+XRANC_PROGRAM_SRCS = server.cpp main.cpp
 
 all: $(XRANC_PROGRAM)
 
-$(XRANC_PROGRAM): ../xranc-sb-api-src/$(ASN_LIBRARY) $(XRANC_PROGRAM_SRCS:.c=.o)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o $(XRANC_PROGRAM) $(XRANC_PROGRAM_SRCS:.c=.o) $(LDFLAGS) ../xranc-sb-api-src/$(ASN_LIBRARY) $(LIBS)
+$(XRANC_PROGRAM): ../xranc-sb-api-src/$(ASN_LIBRARY) $(XRANC_PROGRAM_SRCS:.cpp=.o)
+	$(LD) $^ $(LDFLAGS) -o $@
 
-.SUFFIXES:
-.SUFFIXES: .c .o
-
-.c.o:
-	$(CC) $(CFLAGS) -o $@ -c $<
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -o $@ -c  $<
 
 clean:
 	rm -f $(XRANC_PROGRAM)
-	rm -f $(XRANC_PROGRAM_SRCS:.c=.o)
+	rm -f $(XRANC_PROGRAM_SRCS:.cpp=.o)
