@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# syntastic
+.syntastic_clang_tidy_config
+.syntastic_cpp_config

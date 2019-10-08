@@ -28,5 +28,6 @@ clean:
 regen: regenerate-from-asn1-source
 
 regenerate-from-asn1-source:
+	git submodule update --init
 	asn1c -fcompound-names -pdu=XRANCPDU ../xranc-sb-api/xRAN-API-IEs.asn1 ../xranc-sb-api/xRAN-API-PDUs.asn1
 
