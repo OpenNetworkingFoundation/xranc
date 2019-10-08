@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <boost/log/trivial.hpp>
 #include <server.h>
+#include <xranc_sb_api.h>
 
 using namespace std;
 
@@ -20,13 +21,16 @@ using namespace std;
 #endif
 
 #define SIZE 1024
-char buf[SIZE];
+//char buf[SIZE];
 #define ECHO_PORT 2013
 
 int server_main() {
         int sockfd, client_sockfd;
         int nread;
         struct sockaddr_in serv_addr;
+        size_t pdu_size = 0;
+        size_t buf_size = 1024;
+        uint8_t buf[buf_size];
 
         cout << "SCTP server" << endl;
 
@@ -66,13 +70,20 @@ int server_main() {
 
                 cout << "client connected" << endl;
 
-                /* transfer data */
-                nread = read(client_sockfd, buf, SIZE);
+                /* Send CellConfigRequest */
+                pdu_size = cell_config_request(buf, buf_size);
+
                 /* write to stdout */
-                write(1, buf, nread);
+                write(1, buf, pdu_size);
+
                 /* and echo it back to client */
-                write(client_sockfd, buf, nread);
+                write(client_sockfd, buf, pdu_size);
+
+                nread = read(client_sockfd, buf, SIZE);
+
+                cell_config_response(buf, nread);
+
                 /* no more for this client */
-                close(client_sockfd);
+                //close(client_sockfd);
         }
 }
