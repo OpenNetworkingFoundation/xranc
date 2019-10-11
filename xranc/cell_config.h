@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-#include <iostream>
-#include <cstdio>
-#include <cstdlib>
-#include <boost/log/trivial.hpp>
-#include <server.h>
-
-using namespace std;
-
-int main(int argc, char *argv[]) {
-    runServer();
-}
+#ifndef __CELL_CONFIG_H
+#define __CELL_CONFIG_H
+size_t cell_config_request(uint8_t *buffer, size_t buf_size);
+void cell_config_response(uint8_t *buffer, size_t buf_size);
+#endif
