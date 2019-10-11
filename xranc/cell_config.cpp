@@ -1,10 +1,25 @@
+/*
+ * Copyright 2017-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-#include <xranc_sb_api.h>
 #include <stdio.h>
+#include <event2/event.h>
 #include <sys/types.h>
 #include <XRANCPDU.h>
 #include <CellConfigRequest.h>   /* CellConfigRequest ASN.1 type  */
-
+#include "cell_config.h"
 
 size_t cell_config_request(uint8_t *buffer, size_t buf_size) {
 	asn_enc_rval_t er;

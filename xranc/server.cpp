@@ -1,89 +1,423 @@
+/*
+ * Copyright 2017-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-#define USE_SCTP
+/**
+ * Multithreaded, libevent 2.x-based socket server.
+ * Copyright (c) 2012 Qi Huang
+ * This software is licensed under the BSD license.
+ * See the accompanying LICENSE.txt for details.
+ */
 
-#include <iostream>
-#include <cstdio>
-#include <cstdlib>
-#include <boost/log/trivial.hpp>
-#include <server.h>
-#include <xranc_sb_api.h>
-
-using namespace std;
-
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
+#include <err.h>
+#include <event2/bufferevent.h>
+#include <event2/buffer.h>
+#include <event2/listener.h>
+#include <event2/util.h>
+#include <event2/event.h>
+#include <signal.h>
 
+#include "server.h"
+#include "workqueue.h"
+#include "cell_config.h"
+
+#define USE_SCTP
 #ifdef USE_SCTP
 #include <netinet/sctp.h>
 #endif
 
-#define SIZE 1024
-//char buf[SIZE];
-#define ECHO_PORT 2013
+/* Port to listen on. */
+#define SERVER_PORT 5555
+/* Connection backlog (# of backlogged connections to accept). */
+#define CONNECTION_BACKLOG 8
+/* Number of worker threads.  Should match number of CPU cores reported in 
+ * /proc/cpuinfo. */
+#define NUM_THREADS 8
 
-int server_main() {
-        int sockfd, client_sockfd;
-        int nread;
-        struct sockaddr_in serv_addr;
-        size_t pdu_size = 0;
-        size_t buf_size = 1024;
-        uint8_t buf[buf_size];
+/* Behaves similarly to fprintf(stderr, ...), but adds file, line, and function
+ information. */
+#define errorOut(...) {\
+    fprintf(stderr, "%s:%d: %s():\t", __FILE__, __LINE__, __FUNCTION__);\
+    fprintf(stderr, __VA_ARGS__);\
+}
 
-        cout << "SCTP server" << endl;
+/**
+ * Struct to carry around connection (client)-specific data.
+ */
+typedef struct client {
+    /* The client's socket. */
+    int fd;
 
-        /* create endpoint using TCP or SCTP */
-        sockfd = socket(AF_INET, SOCK_STREAM,
+    /* The event_base for this client. */
+    struct event_base *evbase;
+
+    /* The bufferedevent for this client. */
+    struct bufferevent *buf_ev;
+
+    /* The output buffer for this client. */
+    struct evbuffer *output_buffer;
+
+    /* Here you can add your own application-specific attributes which
+     * are connection-specific. */
+    struct event *cell_config_timer;
+
+    /*  IP address of this client */
+    struct in_addr ip;
+} client_t;
+
+static struct event_base *evbase;
+static workqueue_t workqueue;
+
+/* Signal handler function (defined below). */
+static void sighandler(int signal);
+
+static void closeClient(client_t *client) {
+    if (client != NULL) {
+        if (client->fd >= 0) {
+            close(client->fd);
+            client->fd = -1;
+        }
+        if (client->cell_config_timer != NULL) {
+            evtimer_del(client->cell_config_timer);
+            event_free(client->cell_config_timer);
+            client->cell_config_timer = NULL;
+        }
+    }
+}
+
+static void closeAndFreeClient(client_t *client) {
+    if (client != NULL) {
+        closeClient(client);
+        if (client->buf_ev != NULL) {
+            bufferevent_free(client->buf_ev);
+            client->buf_ev = NULL;
+        }
+        if (client->evbase != NULL) {
+            event_base_free(client->evbase);
+            client->evbase = NULL;
+        }
+        if (client->output_buffer != NULL) {
+            evbuffer_free(client->output_buffer);
+            client->output_buffer = NULL;
+        }
+        free(client);
+    }
+}
+
+
+/**
+ * Called by libevent when there is data to read.
+ */
+void buffered_on_read(struct bufferevent *bev, void *arg) {
+    client_t *client = (client_t *)arg;
+    char data[4096];
+    int nbytes;
+    int tbytes = 0;
+
+    /* If we have input data, the number of bytes we have is contained in
+     * bev->input->off. Copy the data from the input buffer to the output
+     * buffer in 4096-byte chunks. There is a one-liner to do the whole thing
+     * in one shot, but the purpose of this server is to show actual real-world
+     * reading and writing of the input and output buffers, so we won't take
+     * that shortcut here. */
+    struct evbuffer *input;
+    input = bufferevent_get_input(bev);
+    while (evbuffer_get_length(input) > 0) {
+        /* Remove a chunk of data from the input buffer, copying it into our
+         * local array (data). */
+        nbytes = evbuffer_remove(input, data, 4096); 
+        /* Add the chunk of data from our local array (data) to the client's
+         * output buffer. */
+        evbuffer_add(client->output_buffer, data, nbytes);
+        tbytes += nbytes;
+    }
+
+    cell_config_response((uint8_t *)data, tbytes);
+
+    /* Send the results to the client.  This actually only queues the results
+     * for sending. Sending will occur asynchronously, handled by libevent. */
+    /*
+    if (bufferevent_write_buffer(bev, client->output_buffer)) {
+        errorOut("Error sending data to client on fd %d\n", client->fd);
+        closeClient(client);
+    }
+    */
+}
+
+/**
+ * Called by libevent when the write buffer reaches 0.  We only
+ * provide this because libevent expects it, but we don't use it.
+ */
+void buffered_on_write(struct bufferevent *bev, void *arg) {
+}
+
+/**
+ * Called by libevent when there is an error on the underlying socket
+ * descriptor.
+ */
+void buffered_on_error(struct bufferevent *bev, short what, void *arg) {
+    closeClient((client_t *)arg);
+}
+
+static void server_job_function(struct job *job) {
+    client_t *client = (client_t *)job->user_data;
+
+    event_base_dispatch(client->evbase);
+    closeAndFreeClient(client);
+    free(job);
+}
+
+void cell_config_timeout(int fd, short event, void *arg)
+{
+    client_t *client = (client_t *)arg;
+    char data[4096];
+    int nbytes;
+
+    nbytes = cell_config_request((uint8_t *)data, 4096);
+    evbuffer_add(client->output_buffer, data, nbytes);
+
+    if (bufferevent_write_buffer(client->buf_ev, client->output_buffer)) {
+        errorOut("Error sending data to client on fd %d\n", client->fd);
+        closeClient(client);
+    }
+}
+
+/**
+ * This function will be called by libevent when there is a connection
+ * ready to be accepted.
+ */
+void on_accept(evutil_socket_t fd, short ev, void *arg) {
+    int client_fd;
+    struct sockaddr_in client_addr;
+    socklen_t client_len = sizeof(client_addr);
+    workqueue_t *workqueue = (workqueue_t *)arg;
+    client_t *client;
+    job_t *job;
+
+
+    client_fd = accept(fd, (struct sockaddr *)&client_addr, &client_len);
+    if (client_fd < 0) {
+        warn("accept failed");
+        return;
+    }
+
+    /* Set the client socket to non-blocking mode. */
+    if (evutil_make_socket_nonblocking(client_fd) < 0) {
+        warn("failed to set client socket to non-blocking");
+        close(client_fd);
+        return;
+    }
+
+    /* Create a client object. */
+    if ((client = (client_t*)malloc(sizeof(*client))) == NULL) {
+        warn("failed to allocate memory for client state");
+        close(client_fd);
+        return;
+    }
+    memset(client, 0, sizeof(*client));
+    client->fd = client_fd;
+
+    /* Add any custom code anywhere from here to the end of this function
+     * to initialize your application-specific attributes in the client struct.
+     */
+
+    if ((client->output_buffer = evbuffer_new()) == NULL) {
+        warn("client output buffer allocation failed");
+        closeAndFreeClient(client);
+        return;
+    }
+
+    if ((client->evbase = event_base_new()) == NULL) {
+        warn("client event_base creation failed");
+        closeAndFreeClient(client);
+        return;
+    }
+
+    /* Create the buffered event.
+     *
+     * The first argument is the file descriptor that will trigger
+     * the events, in this case the clients socket.
+     *
+     * The second argument is the callback that will be called
+     * when data has been read from the socket and is available to
+     * the application.
+     *
+     * The third argument is a callback to a function that will be
+     * called when the write buffer has reached a low watermark.
+     * That usually means that when the write buffer is 0 length,
+     * this callback will be called.  It must be defined, but you
+     * don't actually have to do anything in this callback.
+     *
+     * The fourth argument is a callback that will be called when
+     * there is a socket error.  This is where you will detect
+     * that the client disconnected or other socket errors.
+     *
+     * The fifth and final argument is to store an argument in
+     * that will be passed to the callbacks.  We store the client
+     * object here.
+     */
+    /* Shad - try BEV_OPT_DEFER_CALLBACKS */
+    client->buf_ev = bufferevent_socket_new(client->evbase, client_fd,
+                                            BEV_OPT_CLOSE_ON_FREE);
+    if ((client->buf_ev) == NULL) {
+        warn("client bufferevent creation failed");
+        closeAndFreeClient(client);
+        return;
+    }
+    bufferevent_setcb(client->buf_ev, buffered_on_read, buffered_on_write,
+                      buffered_on_error, client);
+
+    /* We have to enable it before our callbacks will be
+     * called. */
+    bufferevent_enable(client->buf_ev, EV_READ);
+
+    /* Create a job object and add it to the work queue. */
+    if ((job = (job_t*)malloc(sizeof(*job))) == NULL) {
+        warn("failed to allocate memory for job state");
+        closeAndFreeClient(client);
+        return;
+    }
+    job->job_function = server_job_function;
+    job->user_data = client;
+
+    struct sockaddr_in* pV4Addr = (struct sockaddr_in*)&client_addr;
+    client->ip = pV4Addr->sin_addr;
+    char str[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &client->ip, str, INET_ADDRSTRLEN);
+    warn("connected to %s", str);
+
+    struct timeval tv = {1, 0};
+    client->cell_config_timer = event_new(client->evbase, -1, EV_PERSIST, cell_config_timeout, client);
+    evtimer_add(client->cell_config_timer, &tv);
+
+    workqueue_add_job(workqueue, job);
+}
+
+/**
+ * Run the server.  This function blocks, only returning when the server has 
+ * terminated.
+ */
+int runServer(void) {
+    evutil_socket_t listenfd;
+    struct sockaddr_in listen_addr;
+    struct event *ev_accept;
+    int reuseaddr_on;
+
+    /* Set signal handlers */
+    sigset_t sigset;
+    sigemptyset(&sigset);
+    struct sigaction siginfo;
+    siginfo.sa_handler = sighandler,
+    siginfo.sa_mask = sigset,
+    siginfo.sa_flags = SA_RESTART,
+    sigaction(SIGINT, &siginfo, NULL);
+    sigaction(SIGTERM, &siginfo, NULL);
+
+    /* Create our listening socket. */
+    listenfd = socket(AF_INET, SOCK_STREAM,
 #ifdef USE_SCTP
                         IPPROTO_SCTP
 #else
                         IPPROTO_TCP
 #endif
-                );
-        if (sockfd < 0) {
-            perror("socket creation failed");
-            exit(2);
-        }
-        /* bind address */
-        serv_addr.sin_family = AF_INET;
-        serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-        serv_addr.sin_port = htons(ECHO_PORT);
-        if (bind(sockfd,
-                 (struct sockaddr *) &serv_addr,
-                 sizeof(serv_addr)) < 0) {
-            perror("bind failed");
-            exit(3);
-        }
-        /* specify queue length */
-        listen(sockfd, 5);
-        for (;;) {
-                /* get a connection from client */
-                client_sockfd = accept(sockfd,
-                                       (struct sockaddr *) NULL,
-                                       (unsigned int *) NULL);
-                if (client_sockfd == -1) {
-                        perror("accept failed");
-                        continue;
-                }
+            );
+    if (listenfd < 0) {
+        err(1, "listen failed");
+    }
 
-                cout << "client connected" << endl;
+    memset(&listen_addr, 0, sizeof(listen_addr));
+    listen_addr.sin_family = AF_INET;
+    listen_addr.sin_addr.s_addr = INADDR_ANY;
+    listen_addr.sin_port = htons(SERVER_PORT);
+    if (bind(listenfd, (struct sockaddr *)&listen_addr, sizeof(listen_addr)) 
+        < 0) {
+        err(1, "bind failed");
+    }
+    if (listen(listenfd, CONNECTION_BACKLOG) < 0) {
+        err(1, "listen failed");
+    }
+    reuseaddr_on = 1;
+    setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &reuseaddr_on,
+               sizeof(reuseaddr_on));
 
-                /* Send CellConfigRequest */
-                pdu_size = cell_config_request(buf, buf_size);
+    /* Set the socket to non-blocking, this is essential in event
+     * based programming with libevent. */
+    if (evutil_make_socket_nonblocking(listenfd) < 0) {
+        err(1, "failed to set server socket to non-blocking");
+    }
 
-                /* write to stdout */
-                write(1, buf, pdu_size);
+    if ((evbase = event_base_new()) == NULL) {
+        perror("Unable to create socket accept event base");
+        close(listenfd);
+        return 1;
+    }
 
-                /* and echo it back to client */
-                write(client_sockfd, buf, pdu_size);
+    /* Initialize work queue. */
+    if (workqueue_init(&workqueue, NUM_THREADS)) {
+        perror("Failed to create work queue");
+        close(listenfd);
+        workqueue_shutdown(&workqueue);
+        return 1;
+    }
 
-                nread = read(client_sockfd, buf, SIZE);
+    /* We now have a listening socket, we create a read event to
+     * be notified when a client connects. */
+    ev_accept = event_new(evbase, listenfd, EV_READ|EV_PERSIST,
+                          on_accept, (void *)&workqueue);
+    event_add(ev_accept, NULL);
 
-                cell_config_response(buf, nread);
+    printf("Server running.\n");
 
-                /* no more for this client */
-                //close(client_sockfd);
-        }
+    /* Start the event loop. */
+    event_base_dispatch(evbase);
+
+    event_base_free(evbase);
+    evbase = NULL;
+
+    close(listenfd);
+
+    printf("Server shutdown.\n");
+
+    return 0;
+}
+
+/**
+ * Kill the server.  This function can be called from another thread to kill
+ * the server, causing runServer() to return.
+ */
+void killServer(void) {
+    fprintf(stdout, "Stopping socket listener event loop.\n");
+    if (event_base_loopexit(evbase, NULL)) {
+        perror("Error shutting down server");
+    }
+    fprintf(stdout, "Stopping workers.\n");
+    workqueue_shutdown(&workqueue);
+}
+
+static void sighandler(int signal) {
+    fprintf(stdout, "Received signal %d: %s.  Shutting down.\n", signal,
+            strsignal(signal));
+    killServer();
 }
