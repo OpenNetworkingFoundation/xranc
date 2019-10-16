@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,33 @@
 #include <XRANCPDU.h>
 #include <CellConfigRequest.h>   /* CellConfigRequest ASN.1 type  */
 #include "cell_config.h"
+#include "client.h"
+#include "config.h"
 
-size_t cell_config_request(uint8_t *buffer, size_t buf_size) {
+static void cell_config_timeout(int fd, short event, void *arg)
+{
+    client_t *client = (client_t *)arg;
+    char data[4096];
+    int nbytes;
+
+    nbytes = cell_config_request((uint8_t *)data, 4096, client->ip);
+    evbuffer_add(client->output_buffer, data, nbytes);
+
+    if (bufferevent_write_buffer(client->buf_ev, client->output_buffer)) {
+        printf("Error sending data to client on fd %d\n", client->fd);
+        closeClient(client);
+    }
+}
+
+void cell_config_timer_add(client_t *client) {
+    Config* config = Config::Instance();
+    struct timeval tv = {config->xranc_cellconfigrequest_interval_seconds, 0};
+
+    client->cell_config_timer = event_new(client->evbase, -1, EV_PERSIST, cell_config_timeout, client);
+    evtimer_add(client->cell_config_timer, &tv);
+}
+
+size_t cell_config_request(uint8_t *buffer, size_t buf_size, char *ip) {
 	asn_enc_rval_t er;
     XRANCPDU *pdu;
 
@@ -61,18 +86,7 @@ size_t cell_config_request(uint8_t *buffer, size_t buf_size) {
     return er.encoded;
 }
 
-void cell_config_response(uint8_t *buffer, size_t buf_size) {
-    XRANCPDU *pdu = 0;
-    asn_dec_rval_t rval;
-    rval = asn_decode(0, ATS_BER, &asn_DEF_XRANCPDU, (void **)&pdu, buffer, buf_size);
-    switch (rval.code) {
-        case RC_OK:
-            xer_fprint(stdout, &asn_DEF_XRANCPDU, pdu);
-            break;
-        case RC_WMORE:
-        case RC_FAIL:
-        default:
-            break;
-    }
+void cell_config_response(XRANCPDU *pdu) {
+    xer_fprint(stdout, &asn_DEF_XRANCPDU, pdu);
     ASN_STRUCT_FREE(asn_DEF_XRANCPDU, pdu);
 }

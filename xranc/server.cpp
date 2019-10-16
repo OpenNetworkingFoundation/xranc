@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,8 +40,10 @@
 #include <signal.h>
 
 #include "server.h"
+#include "client.h"
 #include "workqueue.h"
 #include "cell_config.h"
+#include "dispatch.h"
 
 #define USE_SCTP
 #ifdef USE_SCTP
@@ -63,49 +65,11 @@
     fprintf(stderr, __VA_ARGS__);\
 }
 
-/**
- * Struct to carry around connection (client)-specific data.
- */
-typedef struct client {
-    /* The client's socket. */
-    int fd;
-
-    /* The event_base for this client. */
-    struct event_base *evbase;
-
-    /* The bufferedevent for this client. */
-    struct bufferevent *buf_ev;
-
-    /* The output buffer for this client. */
-    struct evbuffer *output_buffer;
-
-    /* Here you can add your own application-specific attributes which
-     * are connection-specific. */
-    struct event *cell_config_timer;
-
-    /*  IP address of this client */
-    struct in_addr ip;
-} client_t;
-
 static struct event_base *evbase;
 static workqueue_t workqueue;
 
 /* Signal handler function (defined below). */
 static void sighandler(int signal);
-
-static void closeClient(client_t *client) {
-    if (client != NULL) {
-        if (client->fd >= 0) {
-            close(client->fd);
-            client->fd = -1;
-        }
-        if (client->cell_config_timer != NULL) {
-            evtimer_del(client->cell_config_timer);
-            event_free(client->cell_config_timer);
-            client->cell_config_timer = NULL;
-        }
-    }
-}
 
 static void closeAndFreeClient(client_t *client) {
     if (client != NULL) {
@@ -154,7 +118,7 @@ void buffered_on_read(struct bufferevent *bev, void *arg) {
         tbytes += nbytes;
     }
 
-    cell_config_response((uint8_t *)data, tbytes);
+    dispatch((uint8_t *)data, tbytes);
 
     /* Send the results to the client.  This actually only queues the results
      * for sending. Sending will occur asynchronously, handled by libevent. */
@@ -187,21 +151,6 @@ static void server_job_function(struct job *job) {
     event_base_dispatch(client->evbase);
     closeAndFreeClient(client);
     free(job);
-}
-
-void cell_config_timeout(int fd, short event, void *arg)
-{
-    client_t *client = (client_t *)arg;
-    char data[4096];
-    int nbytes;
-
-    nbytes = cell_config_request((uint8_t *)data, 4096);
-    evbuffer_add(client->output_buffer, data, nbytes);
-
-    if (bufferevent_write_buffer(client->buf_ev, client->output_buffer)) {
-        errorOut("Error sending data to client on fd %d\n", client->fd);
-        closeClient(client);
-    }
 }
 
 /**
@@ -302,24 +251,19 @@ void on_accept(evutil_socket_t fd, short ev, void *arg) {
     job->job_function = server_job_function;
     job->user_data = client;
 
-    struct sockaddr_in* pV4Addr = (struct sockaddr_in*)&client_addr;
-    client->ip = pV4Addr->sin_addr;
-    char str[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &client->ip, str, INET_ADDRSTRLEN);
-    warn("connected to %s", str);
+    inet_ntop(AF_INET, &(((struct sockaddr_in*)&client_addr)->sin_addr), client->ip, INET_ADDRSTRLEN);
+    warn("connected to %s", client->ip);
 
-    struct timeval tv = {1, 0};
-    client->cell_config_timer = event_new(client->evbase, -1, EV_PERSIST, cell_config_timeout, client);
-    evtimer_add(client->cell_config_timer, &tv);
+    client_timers_add(client);
 
     workqueue_add_job(workqueue, job);
 }
 
 /**
- * Run the server.  This function blocks, only returning when the server has 
+ * Run the server.  This function blocks, only returning when the server has
  * terminated.
  */
-int runServer(void) {
+int runServer(const Config& config) {
     evutil_socket_t listenfd;
     struct sockaddr_in listen_addr;
     struct event *ev_accept;

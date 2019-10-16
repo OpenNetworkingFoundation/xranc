@@ -1,0 +1,24 @@
+{
+    "active_cells": [
+      {
+        "plmn_id": "000001",
+        "eci": "00000010",
+        "ip_addr": "1.1.1.2"
+      },
+      {
+        "plmn_id": "000002",
+        "eci": "00000020",
+        "ip_addr": "1.1.1.3"
+      }
+    ],
+    "l2_meas_report_interval_ms": 5000,
+    "rx_signal_meas_report_interval_ms": 7000,
+    "xranc_cellconfigrequest_interval_seconds": 5,
+    "xranc_bind_ip": "1.1.1.1",
+    "xranc_port": 7891,
+    "admission_success": true,
+    "bearer_success": true,
+    "no_meas_link_removal_ms": 1000000,
+    "idle_ue_removal_ms": 1,
+    "nb_response_timeout_ms": 10000
+}

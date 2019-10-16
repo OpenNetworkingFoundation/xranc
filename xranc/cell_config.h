@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,11 @@
 
 #ifndef __CELL_CONFIG_H
 #define __CELL_CONFIG_H
-size_t cell_config_request(uint8_t *buffer, size_t buf_size);
-void cell_config_response(uint8_t *buffer, size_t buf_size);
+
+#include <XRANCPDU.h>
+#include "client.h"
+
+void cell_config_timer_add(client_t *client);
+size_t cell_config_request(uint8_t *buffer, size_t buf_size, char *ip);
+void cell_config_response(XRANCPDU *pdu);
 #endif
