@@ -14,20 +14,7 @@
  * limitations under the License.
  */
 
-#include <iostream>
-#include <cstdio>
-#include <cstdlib>
-#include <boost/log/trivial.hpp>
-#include <config.h>
-#include <server.h>
-
-using namespace std;
-
-int main(int argc, char *argv[]) {
-    Config* config = Config::Instance();
-    config->parse("xran-cfg.json");
-
-    //Config* config = Config::Instance("xran-cfg.json");
-    cout << *config;
-    runServer(*config);
-}
+#ifndef __DISPATCH_H
+#define __DISPATCH_H
+void dispatch(uint8_t *buffer, size_t buf_size);
+#endif

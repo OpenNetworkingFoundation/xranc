@@ -14,20 +14,25 @@
  * limitations under the License.
  */
 
-#include <iostream>
-#include <cstdio>
-#include <cstdlib>
-#include <boost/log/trivial.hpp>
-#include <config.h>
-#include <server.h>
+#include <unistd.h>
+#include "client.h"
+#include "config.h"
+#include "cell_config.h"
 
-using namespace std;
+void closeClient(client_t *client) {
+    if (client != NULL) {
+        if (client->fd >= 0) {
+            close(client->fd);
+            client->fd = -1;
+        }
+        if (client->cell_config_timer != NULL) {
+            evtimer_del(client->cell_config_timer);
+            event_free(client->cell_config_timer);
+            client->cell_config_timer = NULL;
+        }
+    }
+}
 
-int main(int argc, char *argv[]) {
-    Config* config = Config::Instance();
-    config->parse("xran-cfg.json");
-
-    //Config* config = Config::Instance("xran-cfg.json");
-    cout << *config;
-    runServer(*config);
+void client_timers_add(client_t *client) {
+    cell_config_timer_add(client);
 }

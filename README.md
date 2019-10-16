@@ -1,8 +1,9 @@
 # xranc
 
-## Install libevent2
+## Install dependencies
 ```
 sudo apt-get install libevent2-dev
+sudo apt-get install libjsoncpp-dev
 ```
 
 ### Clone with SSH or HTTPS
