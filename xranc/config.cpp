@@ -63,7 +63,7 @@ ostream & operator << (ostream &out, const Config &c) {
     return out;
 }
 
-unsigned char* hexstr_to_char(const char* hexstr, uint8_t *chrs)
+static unsigned char* hexstr_to_char(const char* hexstr, uint8_t *chrs)
 {
     size_t len = strlen(hexstr);
 /*

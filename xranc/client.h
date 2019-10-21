@@ -35,7 +35,7 @@ typedef struct client {
     struct bufferevent *buf_ev;
 
     /* The output buffer for this client. */
-    struct evbuffer *output_buffer;
+    //struct evbuffer *output_buffer;
 
     /* Here you can add your own application-specific attributes which
      * are connection-specific. */

@@ -31,12 +31,14 @@ static void cell_config_timeout(int fd, short event, void *arg)
     int nbytes;
 
     nbytes = cell_config_request((uint8_t *)data, 4096, client->ip);
-    evbuffer_add(client->output_buffer, data, nbytes);
 
-    if (bufferevent_write_buffer(client->buf_ev, client->output_buffer)) {
+    struct evbuffer *tmp = evbuffer_new();
+    evbuffer_add(tmp, data, nbytes);
+    if (bufferevent_write_buffer(client->buf_ev, tmp)) {
         printf("Error sending data to client on fd %d\n", client->fd);
         closeClient(client);
     }
+    evbuffer_free(tmp);
 }
 
 void cell_config_timer_add(client_t *client) {
@@ -94,6 +96,5 @@ size_t cell_config_request(uint8_t *buffer, size_t buf_size, char *ip) {
 }
 
 void cell_config_response(XRANCPDU *pdu) {
-    xer_fprint(stdout, &asn_DEF_XRANCPDU, pdu);
-    ASN_STRUCT_FREE(asn_DEF_XRANCPDU, pdu);
+    // TODO
 }

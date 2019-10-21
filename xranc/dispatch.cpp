@@ -17,8 +17,10 @@
 #include <XRANCPDU.h>
 #include "dispatch.h"
 #include "cell_config.h"
+#include "ue_admission.h"
+#include "client.h"
 
-void dispatch(uint8_t *buffer, size_t buf_size) {
+void dispatch(uint8_t *buffer, size_t buf_size, client_t *client) {
     XRANCPDU *pdu = 0;
     asn_dec_rval_t rval;
     rval = asn_decode(0, ATS_BER, &asn_DEF_XRANCPDU, (void **)&pdu, buffer, buf_size);
@@ -32,11 +34,18 @@ void dispatch(uint8_t *buffer, size_t buf_size) {
             return;
     }
 
+    xer_fprint(stdout, &asn_DEF_XRANCPDU, pdu);
+
     switch (pdu->hdr.api_id) {
         case XRANC_API_ID_cellConfigReport:
             cell_config_response(pdu);
             break;
+        case XRANC_API_ID_uEAdmissionRequest:
+            ue_admission_request(pdu, client);
+            break;
         default:
             printf("Message %lu not handled\n", pdu->hdr.api_id);
     }
+
+    ASN_STRUCT_FREE(asn_DEF_XRANCPDU, pdu);
 }

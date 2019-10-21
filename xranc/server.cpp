@@ -82,10 +82,12 @@ static void closeAndFreeClient(client_t *client) {
             event_base_free(client->evbase);
             client->evbase = NULL;
         }
+        /*
         if (client->output_buffer != NULL) {
             evbuffer_free(client->output_buffer);
             client->output_buffer = NULL;
         }
+        */
         free(client);
     }
 }
@@ -114,11 +116,11 @@ void buffered_on_read(struct bufferevent *bev, void *arg) {
         nbytes = evbuffer_remove(input, data, 4096); 
         /* Add the chunk of data from our local array (data) to the client's
          * output buffer. */
-        evbuffer_add(client->output_buffer, data, nbytes);
+        //evbuffer_add(client->output_buffer, data, nbytes);
         tbytes += nbytes;
     }
 
-    dispatch((uint8_t *)data, tbytes);
+    dispatch((uint8_t *)data, tbytes, client);
 
     /* Send the results to the client.  This actually only queues the results
      * for sending. Sending will occur asynchronously, handled by libevent. */
@@ -192,11 +194,13 @@ void on_accept(evutil_socket_t fd, short ev, void *arg) {
      * to initialize your application-specific attributes in the client struct.
      */
 
+    /*
     if ((client->output_buffer = evbuffer_new()) == NULL) {
         warn("client output buffer allocation failed");
         closeAndFreeClient(client);
         return;
     }
+    */
 
     if ((client->evbase = event_base_new()) == NULL) {
         warn("client event_base creation failed");
