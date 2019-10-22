@@ -21,6 +21,6 @@
 #include "client.h"
 
 void cell_config_timer_add(client_t *client);
-size_t cell_config_request(uint8_t *buffer, size_t buf_size, char *ip);
+void cell_config_request(client_t *client);
 void cell_config_response(XRANCPDU *pdu);
 #endif

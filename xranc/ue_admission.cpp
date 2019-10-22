@@ -16,57 +16,59 @@
 
 #include <XRANCPDU.h>
 #include "client.h"
-/*
-#include <stdio.h>
-#include <vector>
-#include <event2/event.h>
-#include <sys/types.h>
-#include <CellConfigRequest.h>
-#include "cell_config.h"
-#include "client.h"
-#include "config.h"
-*/
 
-size_t ue_admission_request(XRANCPDU *pdu, client_t *client) {
-	asn_enc_rval_t er;
+void ue_admission_request(XRANCPDU *pdu, client_t *client) {
     char buffer[4096];
     int buf_size = 4096;
-    XRANCPDU resp;
+    XRANCPDU *resp = (XRANCPDU *)calloc(1, sizeof(XRANCPDU));
 
     /*  Allocate an instance of XRANCPDU */
 
     /* Fill in the version */
-    resp.hdr.ver.buf = (uint8_t *)calloc(1, sizeof(char));
+    resp->hdr.ver.buf = (uint8_t *)calloc(1, sizeof(char));
 
     //Shad - add api version to config
-    *(resp.hdr.ver.buf) = '5';
-    resp.hdr.ver.size = sizeof(char);
+    *(resp->hdr.ver.buf) = '5';
+    resp->hdr.ver.size = sizeof(char);
 
     /* Fill in the API Id */
-    resp.hdr.api_id = XRANC_API_ID_uEAdmissionResponse;
+    resp->hdr.api_id = XRANC_API_ID_uEAdmissionResponse;
 
-    resp.body.present = XRANCPDUBody_PR_uEAdmissionResponse;
+    resp->body.present = XRANCPDUBody_PR_uEAdmissionResponse;
 
-    // Shad - copy from request - Is this the right thing to do?
-    resp.body.choice.uEAdmissionResponse.crnti = pdu->body.choice.uEAdmissionResponse.crnti;
-    resp.body.choice.uEAdmissionResponse.ecgi = pdu->body.choice.uEAdmissionResponse.ecgi;
-    resp.body.choice.uEAdmissionResponse.adm_est_response = AdmEstResponse_success;
+    // Shad - copy CRNTI from request - Is this the right thing to do?
+    resp->body.choice.uEAdmissionResponse.crnti.buf
+        = (uint8_t *)calloc(1, pdu->body.choice.uEAdmissionResponse.crnti.size);
+    memcpy(resp->body.choice.uEAdmissionResponse.crnti.buf,
+            pdu->body.choice.uEAdmissionResponse.crnti.buf,
+            pdu->body.choice.uEAdmissionResponse.crnti.size);
+    resp->body.choice.uEAdmissionResponse.crnti.size
+        = pdu->body.choice.uEAdmissionResponse.crnti.size;
 
-    xer_fprint(stdout, &asn_DEF_XRANCPDU, &resp);
+    /*  Copy over the ECGI from the request */
+    /*  Shad - not OK? */
+    resp->body.choice.uEAdmissionResponse.ecgi.pLMN_Identity.buf
+        = (uint8_t *)calloc(1, pdu->body.choice.uEAdmissionResponse.ecgi.pLMN_Identity.size);
+    memcpy(resp->body.choice.uEAdmissionResponse.ecgi.pLMN_Identity.buf,
+            pdu->body.choice.uEAdmissionResponse.ecgi.pLMN_Identity.buf,
+            pdu->body.choice.uEAdmissionResponse.ecgi.pLMN_Identity.size);
+    resp->body.choice.uEAdmissionResponse.ecgi.pLMN_Identity.size
+        = pdu->body.choice.uEAdmissionResponse.ecgi.pLMN_Identity.size;
 
-	er = asn_encode_to_buffer(0, ATS_BER, &asn_DEF_XRANCPDU, &resp, buffer, buf_size);
-    if(er.encoded > buf_size) {
-       fprintf(stderr, "Buffer of size %d is too small for %s, need %zu\n",
-           buf_size, asn_DEF_XRANCPDU.name, er.encoded);
-    }
+    resp->body.choice.uEAdmissionResponse.ecgi.eUTRANcellIdentifier.buf
+        = (uint8_t *)calloc(1, pdu->body.choice.uEAdmissionResponse.ecgi.eUTRANcellIdentifier.size);
+    memcpy(resp->body.choice.uEAdmissionResponse.ecgi.eUTRANcellIdentifier.buf,
+            pdu->body.choice.uEAdmissionResponse.ecgi.eUTRANcellIdentifier.buf,
+            pdu->body.choice.uEAdmissionResponse.ecgi.eUTRANcellIdentifier.size);
+    resp->body.choice.uEAdmissionResponse.ecgi.eUTRANcellIdentifier.size
+        = pdu->body.choice.uEAdmissionResponse.ecgi.eUTRANcellIdentifier.size;
 
-    struct evbuffer *tmp = evbuffer_new();
-    evbuffer_add(tmp, buffer, buf_size);
-    if (bufferevent_write_buffer(client->buf_ev, tmp)) {
-        printf("Error sending data to client on fd %d\n", client->fd);
-        closeClient(client);
-    }
-    evbuffer_free(tmp);
+    resp->body.choice.uEAdmissionResponse.adm_est_response = AdmEstResponse_success;
 
-    return er.encoded;
+    xer_fprint(stdout, &asn_DEF_XRANCPDU, resp);
+
+    client_send(resp, client);
+
+    // Shad - seg faults if resp is free-ed up!!!
+    ASN_STRUCT_FREE(asn_DEF_XRANCPDU, resp);
 }
