@@ -36,3 +36,23 @@ void closeClient(client_t *client) {
 void client_timers_add(client_t *client) {
     cell_config_timer_add(client);
 }
+
+void client_send(XRANCPDU *pdu, client_t *client) {
+    char buffer[4096];
+    int buf_size = 4096;
+	asn_enc_rval_t er;
+
+	er = asn_encode_to_buffer(0, ATS_BER, &asn_DEF_XRANCPDU, pdu, buffer, buf_size);
+    if(er.encoded > buf_size) {
+       fprintf(stderr, "Buffer of size %d is too small for %s, need %zu\n",
+           buf_size, asn_DEF_XRANCPDU.name, er.encoded);
+    }
+
+    struct evbuffer *tmp = evbuffer_new();
+    evbuffer_add(tmp, buffer, er.encoded);
+    if (bufferevent_write_buffer(client->buf_ev, tmp)) {
+        printf("Error sending data to client on fd %d\n", client->fd);
+        closeClient(client);
+    }
+    evbuffer_free(tmp);
+}

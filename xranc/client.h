@@ -20,6 +20,7 @@
 #include <event2/event.h>
 #include <event2/bufferevent.h>
 #include <event2/buffer.h>
+#include <XRANCPDU.h>
 
 /**
  * Struct to carry around connection (client)-specific data.
@@ -47,4 +48,5 @@ typedef struct client {
 
 void closeClient(client_t *client);
 void client_timers_add(client_t *client);
+void client_send(XRANCPDU *pdu, client_t *client);
 #endif
