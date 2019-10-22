@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-#ifndef __DISPATCH_H
-#define __DISPATCH_H
+#ifndef __UE_ADMISSION_H
+#define __UE_ADMISSION_H
 
+#include <XRANCPDU.h>
 #include "client.h"
 
-void dispatch(uint8_t *buffer, size_t buf_size, client_t *client);
+void ue_admission_request(XRANCPDU *pdu, client_t *client);
 #endif

@@ -18,7 +18,7 @@
 #define _CONFIG_H
 
 #include <string>
-#include <vector>
+#include <map>
 
 using namespace std;
 
@@ -30,7 +30,7 @@ struct Cell {
 
 class Config {
     public:
-        vector<Cell> active_cells;
+        map<string, Cell> active_cells;
         unsigned int l2_meas_report_interval_ms;
         unsigned int rx_signal_meas_report_interval_ms;
         unsigned int xranc_cellconfigrequest_interval_seconds;
@@ -44,6 +44,8 @@ class Config {
 
         static Config* Instance();
         void parse(string config_file);
+        void get_plmn_id(char *ip, uint8_t *plmn_id);
+        void get_eci(char *ip, uint8_t *eci);
         friend ostream & operator << (ostream &out, const Config &c);
 
     private:
@@ -52,5 +54,7 @@ class Config {
         Config& operator=(Config const&) {};
         static Config* pInstance;
 };
+
+void get_plmn_id(char *ip, uint8_t *plmn_id);
 
 #endif

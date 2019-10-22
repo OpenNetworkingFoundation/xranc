@@ -15,6 +15,7 @@
  */
 
 #include <stdio.h>
+#include <vector>
 #include <event2/event.h>
 #include <sys/types.h>
 #include <XRANCPDU.h>
@@ -30,12 +31,14 @@ static void cell_config_timeout(int fd, short event, void *arg)
     int nbytes;
 
     nbytes = cell_config_request((uint8_t *)data, 4096, client->ip);
-    evbuffer_add(client->output_buffer, data, nbytes);
 
-    if (bufferevent_write_buffer(client->buf_ev, client->output_buffer)) {
+    struct evbuffer *tmp = evbuffer_new();
+    evbuffer_add(tmp, data, nbytes);
+    if (bufferevent_write_buffer(client->buf_ev, tmp)) {
         printf("Error sending data to client on fd %d\n", client->fd);
         closeClient(client);
     }
+    evbuffer_free(tmp);
 }
 
 void cell_config_timer_add(client_t *client) {
@@ -49,12 +52,16 @@ void cell_config_timer_add(client_t *client) {
 size_t cell_config_request(uint8_t *buffer, size_t buf_size, char *ip) {
 	asn_enc_rval_t er;
     XRANCPDU *pdu;
+    struct Cell cell;
+
+    Config* config = Config::Instance();
 
     /*  Allocate an instance of XRANCPDU */
     pdu = (XRANCPDU *)calloc(1, sizeof(XRANCPDU));
 
     /* Fill in the version */
     pdu->hdr.ver.buf = (uint8_t *)calloc(1, sizeof(char));
+    //Shad - add api version to config
     *(pdu->hdr.ver.buf) = '5';
     pdu->hdr.ver.size = sizeof(char);
 
@@ -64,12 +71,14 @@ size_t cell_config_request(uint8_t *buffer, size_t buf_size, char *ip) {
     pdu->body.present = XRANCPDUBody_PR_cellConfigRequest;
 
     /*  Fill in the ECGI */
-    uint8_t PLMN_Identity[] = {0,0,2};
+    uint8_t PLMN_Identity[3];
+    config->get_plmn_id(ip, PLMN_Identity);
     pdu->body.choice.cellConfigRequest.ecgi.pLMN_Identity.buf = (uint8_t *)calloc(1, sizeof(PLMN_Identity)/sizeof(PLMN_Identity[0]));
     memcpy(pdu->body.choice.cellConfigRequest.ecgi.pLMN_Identity.buf, PLMN_Identity, sizeof(PLMN_Identity)/sizeof(PLMN_Identity[0]));
     pdu->body.choice.cellConfigRequest.ecgi.pLMN_Identity.size = sizeof(PLMN_Identity)/sizeof(PLMN_Identity[0]);
 
-    uint8_t EUTRANCellIdentifier[] = {0,0,0,0x20};
+    uint8_t EUTRANCellIdentifier[4];
+    config->get_eci(ip, EUTRANCellIdentifier);
     pdu->body.choice.cellConfigRequest.ecgi.eUTRANcellIdentifier.buf = (uint8_t *)calloc(1, sizeof(EUTRANCellIdentifier)/sizeof(EUTRANCellIdentifier[0]));
     memcpy(pdu->body.choice.cellConfigRequest.ecgi.eUTRANcellIdentifier.buf, EUTRANCellIdentifier, sizeof(EUTRANCellIdentifier)/sizeof(EUTRANCellIdentifier[0]));
     pdu->body.choice.cellConfigRequest.ecgi.eUTRANcellIdentifier.size = sizeof(EUTRANCellIdentifier)/sizeof(EUTRANCellIdentifier[0]);
@@ -87,6 +96,5 @@ size_t cell_config_request(uint8_t *buffer, size_t buf_size, char *ip) {
 }
 
 void cell_config_response(XRANCPDU *pdu) {
-    xer_fprint(stdout, &asn_DEF_XRANCPDU, pdu);
-    ASN_STRUCT_FREE(asn_DEF_XRANCPDU, pdu);
+    // TODO
 }

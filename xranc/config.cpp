@@ -2,6 +2,7 @@
 #include <fstream>
 #include <jsoncpp/json/json.h>
 #include <config.h>
+#include <string.h>
 
 Config* Config::pInstance = NULL;
 
@@ -24,7 +25,7 @@ void Config::parse(string config_file) {
         cell.plmn_id = itr["plmn_id"].asString();
         cell.eci = itr["eci"].asString();
         cell.ip_addr = itr["ip_addr"].asString();
-        active_cells.push_back(cell);
+        active_cells[cell.ip_addr] = cell;
     }
 
     l2_meas_report_interval_ms = obj["l2_meas_report_interval_ms"].asInt();
@@ -50,11 +51,44 @@ ostream & operator << (ostream &out, const Config &c) {
     cout << "no_meas_link_removal_ms: " << c.no_meas_link_removal_ms << endl;
     cout << "idle_ue_removal_ms: " << c.idle_ue_removal_ms << endl;
     cout << "nb_response_timeout_ms: " << c.nb_response_timeout_ms << endl;
-    for(auto cell : c.active_cells) {
+
+    for(auto const& x : c.active_cells) {
+        Cell c = x.second;
         cout << endl;
-        cout << "   ip_addr :" << cell.ip_addr << endl;
-        cout << "   plmn_id :" << cell.plmn_id << endl;
-        cout << "   eci :" << cell.eci << endl;
+        cout << "   ip_addr :" << c.ip_addr << endl;
+        cout << "   plmn_id :" << c.plmn_id << endl;
+        cout << "   eci :" << c.eci << endl;
     }
+
     return out;
+}
+
+static unsigned char* hexstr_to_char(const char* hexstr, uint8_t *chrs)
+{
+    size_t len = strlen(hexstr);
+/*
+    IF_ASSERT(len % 2 != 0)
+        return NULL;
+*/
+    size_t final_len = len / 2;
+    for (size_t i=0, j=0; j<final_len; i+=2, j++)
+        chrs[j] = (hexstr[i] % 32 + 9) % 25 * 16 + (hexstr[i+1] % 32 + 9) % 25;
+    chrs[final_len] = '\0';
+    return chrs;
+}
+
+void Config::get_plmn_id(char *ip, uint8_t *plmn_id) {
+    struct Cell cell;
+    Config* config = Config::Instance();
+
+    cell = config->active_cells[ip];
+    hexstr_to_char(cell.plmn_id.c_str(), plmn_id);
+}
+
+void Config::get_eci(char *ip, uint8_t *eci) {
+    struct Cell cell;
+    Config* config = Config::Instance();
+
+    cell = config->active_cells[ip];
+    hexstr_to_char(cell.eci.c_str(), eci);
 }
