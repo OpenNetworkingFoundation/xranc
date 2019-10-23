@@ -52,6 +52,12 @@ void dispatch(uint8_t *buffer, size_t buf_size, client_t *client) {
         case XRANC_API_ID_bearerAdmissionRequest:
             bearer_admission_request(pdu, client);
             break;
+        case XRANC_API_ID_bearerAdmissionStatus:
+            bearer_admission_status(pdu, client);
+            break;
+        case XRANC_API_ID_bearerReleaseInd:
+            bearer_release_ind(pdu, client);
+            break;
         default:
             printf("Message %lu not handled\n", pdu->hdr.api_id);
     }

@@ -34,6 +34,7 @@ void copy_ecgi(ECGI_t *dest, ECGI_t *src) {
 }
 
 void copy_erab_response(ERABResponse_t *dest, ERABResponse_t *src) {
+    // TODO
 }
 
 void ue_admission_request(XRANCPDU *pdu, client_t *client) {
@@ -71,9 +72,11 @@ void ue_admission_request(XRANCPDU *pdu, client_t *client) {
 }
 
 void ue_admission_status(XRANCPDU *pdu, client_t *client) {
+    // TODO
 }
 
 void ue_context_update(XRANCPDU *pdu, client_t *client) {
+    // TODO
 }
 
 void bearer_admission_request(XRANCPDU *pdu, client_t *client) {
@@ -118,4 +121,12 @@ void bearer_admission_request(XRANCPDU *pdu, client_t *client) {
     client_send(resp, client);
 
     ASN_STRUCT_FREE(asn_DEF_XRANCPDU, resp);
+}
+
+void bearer_admission_status(XRANCPDU *pdu, client_t *client) {
+    // TODO
+}
+
+void bearer_release_ind(XRANCPDU *pdu, client_t *client) {
+    // TODO
 }
