@@ -13,7 +13,7 @@ XRANC_PROGRAM_SRCS = \
 	workqueue.cpp \
 	dispatch.cpp \
 	cell_config.cpp \
-	ue_admission.cpp
+	handler.cpp
 
 all: $(XRANC_PROGRAM)
 

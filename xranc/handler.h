@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef __UE_ADMISSION_H
-#define __UE_ADMISSION_H
+#ifndef __UE_H
+#define __UE_H
 
 #include <XRANCPDU.h>
 #include "client.h"
 
 void ue_admission_request(XRANCPDU *pdu, client_t *client);
+void ue_admission_status(XRANCPDU *pdu, client_t *client);
+void ue_context_update(XRANCPDU *pdu, client_t *client);
+void bearer_admission_request(XRANCPDU *pdu, client_t *client);
 #endif
