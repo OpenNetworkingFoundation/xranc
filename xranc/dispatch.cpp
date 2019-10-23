@@ -16,9 +16,9 @@
 
 #include <XRANCPDU.h>
 #include "dispatch.h"
-#include "cell_config.h"
-#include "ue_admission.h"
 #include "client.h"
+#include "cell_config.h"
+#include "handler.h"
 
 void dispatch(uint8_t *buffer, size_t buf_size, client_t *client) {
     XRANCPDU *pdu = 0;
@@ -42,6 +42,15 @@ void dispatch(uint8_t *buffer, size_t buf_size, client_t *client) {
             break;
         case XRANC_API_ID_uEAdmissionRequest:
             ue_admission_request(pdu, client);
+            break;
+        case XRANC_API_ID_uEAdmissionStatus:
+            ue_admission_status(pdu, client);
+            break;
+        case XRANC_API_ID_uEContextUpdate:
+            ue_context_update(pdu, client);
+            break;
+        case XRANC_API_ID_bearerAdmissionRequest:
+            bearer_admission_request(pdu, client);
             break;
         default:
             printf("Message %lu not handled\n", pdu->hdr.api_id);
