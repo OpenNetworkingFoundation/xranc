@@ -9,7 +9,12 @@
         "plmn_id": "000002",
         "eci": "00000020",
         "ip_addr": "1.1.1.3"
-      }
+      },
+      {
+        "plmn_id": "000003",
+        "eci": "00000030",
+        "ip_addr": "127.0.0.1"
+      },
     ],
     "l2_meas_report_interval_ms": 5000,
     "rx_signal_meas_report_interval_ms": 7000,
