@@ -2,8 +2,10 @@
 
 ## Install dependencies
 ```
-sudo apt-get install libevent2-dev
+sudo apt-get install libevent2-dev # for Ubuntu 16.04
+sudo apt-get install libevent-dev # for Ubuntu 18.04
 sudo apt-get install libjsoncpp-dev
+sudo apt install libsctp-dev
 ```
 
 ### Clone with SSH or HTTPS
