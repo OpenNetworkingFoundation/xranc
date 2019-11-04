@@ -16,6 +16,7 @@
 
 #include "context.h"
 #include "dispatch.h"
+#include "config.h"
 
 int64_t total_bytes_read = 0;
 int64_t total_messages_read = 0;
@@ -80,7 +81,7 @@ static void eventcb(struct bufferevent *bev, short events, void *ptr)
     }
 }
 
-int main(int argc, char **argv)
+int enbsim_main(int argc, char **argv, const Config& config)
 {
     //struct bufferevent **bevs;
     struct sockaddr_in sin;

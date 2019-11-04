@@ -1,0 +1,24 @@
+{
+    "cell_config" : {
+        "plmn_id": "000001",
+        "eci": "00000010",
+        "pci": 51,
+        "c_and_s_cells": [
+            {
+                "pci": 51,
+                "earfcn_dl": 51
+            }
+        ],
+        "earfcn_dl": 51,
+        "earfcn_ul": 38000,
+        "rbs_per_tti_dl": 40,
+        "rbs_per_tti_ul": 40,
+        "num_tx_antenna": 2,
+        "duplex_mode": "fdd",
+        "max_num_connected_ues": 1000,
+        "max_num_connected_bearers": 2000,
+        "max_num_ues_sched_per_tti_dl": 10,
+        "max_num_ues_sched_per_tti_ul": 10,
+        "dlfs_sched_enable": true
+    }
+}
