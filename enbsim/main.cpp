@@ -18,15 +18,15 @@
 #include <cstdio>
 #include <cstdlib>
 #include <config.h>
-#include <server.h>
+#include <enbsim.h>
 
 using namespace std;
 
 int main(int argc, char *argv[]) {
     Config* config = Config::Instance();
-    config->parse("xran-cfg.json");
+    config->parse("enbsim.json");
 
     //Config* config = Config::Instance("xran-cfg.json");
     cout << *config;
-    runServer(*config);
+    enbsim_main(argc, argv, *config);
 }

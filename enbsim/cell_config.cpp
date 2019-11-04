@@ -25,7 +25,7 @@
 #include "config.h"
 
 void copy_ecgi(ECGI_t *dest, ECGI_t *src) {
-    dest->pLMN_Identity.buf = (uint8_t *)calloc(1, src->pLMN_Identity.size);
+    dest->pLMN_Identity.buf = (uint8_t *)calloc(1, sizeof(PLMN_Identity_t));
     memcpy(dest->pLMN_Identity.buf, src->pLMN_Identity.buf, src->pLMN_Identity.size);
     dest->pLMN_Identity.size = src->pLMN_Identity.size;
     dest->eUTRANcellIdentifier.buf = (uint8_t *)calloc(1, src->eUTRANcellIdentifier.size);
@@ -56,17 +56,30 @@ void cell_config_request(XRANCPDU *req, context_t *ctx) {
 
     resp->body.present = XRANCPDUBody_PR_cellConfigReport;
 
-    /*  Fill in the ECGI */
+    /*  FIXME - Copy PLMN Id and eUTRAN cell id from request */
     copy_ecgi(&resp->body.choice.cellConfigReport.ecgi,
             &req->body.choice.cellConfigRequest.ecgi);
 
+    /*  Physical cell id */
     resp->body.choice.cellConfigReport.pci = 1;
-
-    CandScell_t *cand_scell = (CandScell_t *)calloc(1, sizeof(CandScell_t));
-    cand_scell->pci = 51;
-    cand_scell->earfcn_dl = 51;
-    ret = ASN_SEQUENCE_ADD(&resp->body.choice.cellConfigReport.cand_scells, cand_scell);
-    assert(ret == 0);
+    {
+        CandScell_t *cand_scell = (CandScell_t *)calloc(1, sizeof(CandScell_t));
+        cand_scell->pci = 51;
+        cand_scell->earfcn_dl = 51;
+        ret = ASN_SEQUENCE_ADD(&resp->body.choice.cellConfigReport.cand_scells, cand_scell);
+        assert(ret == 0);
+    }
+    resp->body.choice.cellConfigReport.earfcn_dl = 51;
+    resp->body.choice.cellConfigReport.earfcn_ul = 38000;
+    resp->body.choice.cellConfigReport.rbs_per_tti_dl = 40;
+    resp->body.choice.cellConfigReport.rbs_per_tti_ul = 40;
+    resp->body.choice.cellConfigReport.num_tx_antenna = 2;
+    resp->body.choice.cellConfigReport.duplex_mode = DuplexMode_tdd;
+    resp->body.choice.cellConfigReport.max_num_connected_ues = 1000;
+    resp->body.choice.cellConfigReport.max_num_connected_bearers = 2000;
+    resp->body.choice.cellConfigReport.max_num_ues_sched_per_tti_dl = 10;
+    resp->body.choice.cellConfigReport.max_num_ues_sched_per_tti_ul = 10;
+    resp->body.choice.cellConfigReport.dlfs_sched_enable = true;
 
     xer_fprint(stdout, &asn_DEF_XRANCPDU, resp);
 

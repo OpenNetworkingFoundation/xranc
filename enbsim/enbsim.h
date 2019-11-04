@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-#include <iostream>
-#include <cstdio>
-#include <cstdlib>
+#ifndef _ENBSIM_H
+#define _ENBSIM_H
 #include <config.h>
-#include <server.h>
 
-using namespace std;
+int enbsim_main(int argc, char *argv[], const Config& config);
 
-int main(int argc, char *argv[]) {
-    Config* config = Config::Instance();
-    config->parse("xran-cfg.json");
-
-    //Config* config = Config::Instance("xran-cfg.json");
-    cout << *config;
-    runServer(*config);
-}
+#endif

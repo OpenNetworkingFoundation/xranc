@@ -6,6 +6,7 @@ LIBS += -lm -levent -lpthread -ljsoncpp
 ASN_LIBRARY ?= libasncodec.a
 ENBSIM ?= enbsim
 ENBSIM_SRCS = \
+	main.cpp \
 	enbsim.cpp \
 	config.cpp \
 	context.cpp \

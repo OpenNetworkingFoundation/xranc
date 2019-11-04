@@ -18,7 +18,6 @@
 #define _SERVER_H
 #include <config.h>
 
-int server_main();
 int runServer(const Config& config);
 
 #endif
