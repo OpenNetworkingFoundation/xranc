@@ -33,9 +33,8 @@ void copy_ecgi(ECGI_t *dest, ECGI_t *src) {
     dest->eUTRANcellIdentifier.size = src->eUTRANcellIdentifier.size;
 }
 
-void cell_config_request(XRANCPDU *req, context_t *ctx) {
+int cell_config_request(XRANCPDU *req, char *resp_buf, int resp_buf_size) {
     // TODO
-	asn_enc_rval_t er;
     XRANCPDU *resp;
     struct Cell cell;
     int ret;
@@ -83,7 +82,13 @@ void cell_config_request(XRANCPDU *req, context_t *ctx) {
 
     xer_fprint(stdout, &asn_DEF_XRANCPDU, resp);
 
-    context_send(resp, ctx);
+    asn_enc_rval_t er = asn_encode_to_buffer(0, ATS_BER, &asn_DEF_XRANCPDU, resp, resp_buf, resp_buf_size);
+    if(er.encoded > resp_buf_size) {
+       fprintf(stderr, "Buffer of size %d is too small for %s, need %zu\n",
+           resp_buf_size, asn_DEF_XRANCPDU.name, er.encoded);
+    }
 
     ASN_STRUCT_FREE(asn_DEF_XRANCPDU, resp);
+
+    return  er.encoded;
 }

@@ -1,5 +1,7 @@
 {
-    "cell_config" : {
+    "nodes": [
+      {
+        "ip_addr": "127.0.0.1",
         "plmn_id": "000001",
         "eci": "00000010",
         "pci": 51,
@@ -8,17 +10,42 @@
                 "pci": 51,
                 "earfcn_dl": 51
             }
-        ],
-        "earfcn_dl": 51,
-        "earfcn_ul": 38000,
-        "rbs_per_tti_dl": 40,
-        "rbs_per_tti_ul": 40,
-        "num_tx_antenna": 2,
-        "duplex_mode": "fdd",
-        "max_num_connected_ues": 1000,
-        "max_num_connected_bearers": 2000,
-        "max_num_ues_sched_per_tti_dl": 10,
-        "max_num_ues_sched_per_tti_ul": 10,
-        "dlfs_sched_enable": true
-    }
+        ]
+      },
+      {
+        "ip_addr": "127.0.0.2",
+        "plmn_id": "000002",
+        "eci": "00000020",
+        "pci": 51,
+        "c_and_s_cells": [
+            {
+                "pci": 51,
+                "earfcn_dl": 51
+            }
+        ]
+      },
+      {
+        "ip_addr": "127.0.0.3",
+        "plmn_id": "000003",
+        "eci": "00000030",
+        "pci": 51,
+        "c_and_s_cells": [
+            {
+                "pci": 51,
+                "earfcn_dl": 51
+            }
+        ]
+      }
+    ],
+    "earfcn_dl": 51,
+    "earfcn_ul": 38000,
+    "rbs_per_tti_dl": 40,
+    "rbs_per_tti_ul": 40,
+    "num_tx_antenna": 2,
+    "duplex_mode": "fdd",
+    "max_num_connected_ues": 1000,
+    "max_num_connected_bearers": 2000,
+    "max_num_ues_sched_per_tti_dl": 10,
+    "max_num_ues_sched_per_tti_ul": 10,
+    "dlfs_sched_enable": true
 }
