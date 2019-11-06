@@ -33,12 +33,29 @@ static void set_tcp_no_delay(evutil_socket_t fd)
                 TCP_NODELAY, &one, sizeof one);
 }
 
-static void timeoutcb(evutil_socket_t fd, short what, void *arg)
-{
-    struct event_base *base = (struct event_base *)arg;
-    printf("timeout\n");
+static int create_bind_socket(int enb_id) {
 
-    event_base_loopexit(base, NULL);
+    char ip[18];
+    int fd;
+    struct sockaddr_in localaddr;
+
+    fd = socket(AF_INET, SOCK_STREAM,
+#ifdef USE_SCTP
+                            IPPROTO_SCTP
+#else
+                            IPPROTO_TCP
+#endif
+                        );
+
+
+    sprintf(ip, "127.0.0.%d", enb_id);
+    localaddr.sin_family = AF_INET;
+    localaddr.sin_addr.s_addr = inet_addr(ip);
+    localaddr.sin_port = 0;  // Any local port will do
+
+    bind(fd, (struct sockaddr *)&localaddr, sizeof(localaddr));
+
+    return fd;
 }
 
 static void readcb(struct bufferevent *bev, void *arg)
@@ -61,14 +78,6 @@ static void readcb(struct bufferevent *bev, void *arg)
     }
 
     dispatch((uint8_t *)data, tbytes, ctx);
-
-    struct evbuffer *output = bufferevent_get_output(bev);
-
-    ++total_messages_read;
-    total_bytes_read += tbytes;
-
-    /* Copy all the data from the input buffer to the output buffer. */
-    evbuffer_add_buffer(output, input);
 }
 
 static void eventcb(struct bufferevent *bev, short events, void *ptr)
@@ -85,85 +94,56 @@ int enbsim_main(int argc, char **argv, const Config& config)
 {
     //struct bufferevent **bevs;
     struct sockaddr_in sin;
-    struct event *evtimeout;
-    struct timeval timeout;
     int i;
 
     if (argc != 5) {
-        fprintf(stderr, "Usage: client <ip> <port> <sessions> <time>\n");
+        fprintf(stderr, "Usage: enbsim <ip> <port> <num-enbs>\n");
         return 1;
     }
 
     char *server_ip  = argv[1];
     int port = atoi(argv[2]);
     int session_count = atoi(argv[3]);
-    int seconds = atoi(argv[4]);
-    timeout.tv_sec = seconds;
-    timeout.tv_usec = 0;
-
-    /* Create a context object. */
-    context_t *context;
-    if ((context = (context_t*)malloc(sizeof(*context))) == NULL) {
-      printf("failed to allocate memory for client state");
-      return 1;
-    }
-
-    context->fd = socket(AF_INET, SOCK_STREAM,
-#ifdef USE_SCTP
-                            IPPROTO_SCTP
-#else
-                            IPPROTO_TCP
-#endif
-                        );
-
-    context->evbase = event_base_new();
-    if (!context->evbase) {
-        puts("Couldn't open event base");
-        return 1;
-    }
-
-    evtimeout = evtimer_new(context->evbase, timeoutcb, context->evbase);
-    evtimer_add(evtimeout, &timeout);
 
     memset(&sin, 0, sizeof(sin));
     sin.sin_family = AF_INET;
     inet_pton(AF_INET, server_ip, &(sin.sin_addr));
     sin.sin_port = htons(port);
 
-    //bevs = (struct bufferevent **)malloc(session_count * sizeof(struct bufferevent *));
-    for (i = 0; i < session_count; ++i) {
-        context->buf_ev = bufferevent_socket_new(context->evbase, context->fd, BEV_OPT_CLOSE_ON_FREE);
+    struct event_base *evbase;
+	evbase = event_base_new();
+	if (!evbase) {
+		puts("Couldn't open event base");
+		return 1;
+	}
 
+    for (i = 0; i < session_count; ++i) {
+		context_t *context;
+		if ((context = (context_t*)malloc(sizeof(*context))) == NULL) {
+		  printf("failed to allocate memory for client state");
+		  return 1;
+		}
+		context->evbase = evbase;
+		context->fd = create_bind_socket(i + 1);
+		context->buf_ev = bufferevent_socket_new(context->evbase, context->fd, BEV_OPT_CLOSE_ON_FREE);
         bufferevent_setcb(context->buf_ev, readcb, NULL, eventcb, context);
         bufferevent_enable(context->buf_ev, EV_READ|EV_WRITE);
-        //evbuffer_add(bufferevent_get_output(context->buf_ev), message, block_size);
-
         if (bufferevent_socket_connect(context->buf_ev, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
           /* Error starting connection */
           bufferevent_free(context->buf_ev);
           puts("error connect");
           return -1;
         }
-        //bevs[i] = context->buf_ev;
     }
 
-    event_base_dispatch(context->evbase);
+    event_base_dispatch(evbase);
 
-    for (i = 0; i < session_count; ++i) {
-        //bufferevent_free(bevs[i]);
-    }
-    //free(bevs);
-    event_free(evtimeout);
-    event_base_free(context->evbase);
-    //free(message);
+    event_base_free(evbase);
 
     printf("%zd total bytes read\n", total_bytes_read);
     printf("%zd total messages read\n", total_messages_read);
     printf("%.3f average messages size\n",
             (double)total_bytes_read / total_messages_read);
-    printf("%.3f MiB/s throughtput\n",
-            (double)total_bytes_read / (timeout.tv_sec * 1024 * 1024));
 
     return 0;
 }
-

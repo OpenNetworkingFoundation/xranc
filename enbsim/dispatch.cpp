@@ -18,26 +18,31 @@
 #include "dispatch.h"
 #include "context.h"
 #include "cell_config.h"
-//#include "handler.h"
 
 void dispatch(uint8_t *buffer, size_t buf_size, context_t *context) {
-    XRANCPDU *pdu = 0;
+    XRANCPDU *req_pdu = 0;
     asn_dec_rval_t rval;
-    rval = asn_decode(0, ATS_BER, &asn_DEF_XRANCPDU, (void **)&pdu, buffer, buf_size);
+
+    int resp_buf_size = 4096;
+    char resp_buf[resp_buf_size];
+    int nbytes = 0;
+
+    rval = asn_decode(0, ATS_BER, &asn_DEF_XRANCPDU, (void **)&req_pdu, buffer, buf_size);
     switch (rval.code) {
         case RC_OK:
             break;
         case RC_WMORE:
         case RC_FAIL:
         default:
-            ASN_STRUCT_FREE(asn_DEF_XRANCPDU, pdu);
+            ASN_STRUCT_FREE(asn_DEF_XRANCPDU, req_pdu);
             return;
     }
 
-    xer_fprint(stdout, &asn_DEF_XRANCPDU, pdu);
-    switch (pdu->hdr.api_id) {
+    xer_fprint(stdout, &asn_DEF_XRANCPDU, req_pdu);
+
+    switch (req_pdu->hdr.api_id) {
         case XRANC_API_ID_cellConfigRequest:
-            cell_config_request(pdu, context);
+            nbytes = cell_config_request(req_pdu, resp_buf, resp_buf_size);
             break;
 /*
         case XRANC_API_ID_uEAdmissionRequest:
@@ -60,8 +65,18 @@ void dispatch(uint8_t *buffer, size_t buf_size, context_t *context) {
             break;
 */
         default:
-            printf("Message %lu not handled\n", pdu->hdr.api_id);
+            printf("Message %lu not handled\n", req_pdu->hdr.api_id);
     }
 
-    ASN_STRUCT_FREE(asn_DEF_XRANCPDU, pdu);
+    ASN_STRUCT_FREE(asn_DEF_XRANCPDU, req_pdu);
+
+    if (nbytes) {
+        struct evbuffer *tmp = evbuffer_new();
+        evbuffer_add(tmp, resp_buf, nbytes);
+        if (bufferevent_write_buffer(context->buf_ev, tmp)) {
+            printf("Error sending data to context on fd %d\n", context->fd);
+            closecontext(context);
+        }
+        evbuffer_free(tmp);
+    }
 }
