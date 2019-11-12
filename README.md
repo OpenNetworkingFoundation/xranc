@@ -8,6 +8,9 @@ sudo apt-get install libjsoncpp-dev
 sudo apt install libsctp-dev
 ```
 
+### Install gRPC
+Please follow this [link](https://github.com/grpc/grpc/blob/v1.25.0/BUILDING.md)
+
 ### Clone with SSH or HTTPS
 ```
 git clone git@github.com:OpenNetworkingFoundation/xranc.git
