@@ -38,6 +38,9 @@ void Config::parse(string config_file) {
     no_meas_link_removal_ms = obj["no_meas_link_removal_ms"].asInt();
     idle_ue_removal_ms = obj["idle_ue_removal_ms"].asInt();
     nb_response_timeout_ms = obj["nb_response_timeout_ms"].asInt();
+    redis_ip_addr = obj["redis_ip_addr"].asString();
+    redis_port = obj["redis_port"].asInt();
+    xranc_nbi_port = obj["xranc_nbi_port"].asInt();
 }
 
 ostream & operator << (ostream &out, const Config &c) {
@@ -51,6 +54,7 @@ ostream & operator << (ostream &out, const Config &c) {
     cout << "no_meas_link_removal_ms: " << c.no_meas_link_removal_ms << endl;
     cout << "idle_ue_removal_ms: " << c.idle_ue_removal_ms << endl;
     cout << "nb_response_timeout_ms: " << c.nb_response_timeout_ms << endl;
+    cout << "redis_ip_addr: " << c.redis_ip_addr << endl;
 
     for(auto const& x : c.active_cells) {
         Cell c = x.second;

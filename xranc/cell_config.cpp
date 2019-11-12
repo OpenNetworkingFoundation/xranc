@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <iostream>
 #include <stdio.h>
 #include <vector>
 #include <event2/event.h>
@@ -23,6 +24,14 @@
 #include "cell_config.h"
 #include "client.h"
 #include "config.h"
+#include <memory>
+#include <grpcpp/grpcpp.h>
+#include <grpc/support/log.h>
+#include <protobufs/gRPC-CellConfigReport.grpc.pb.h>
+#include <gRPCHandlers/gRPCClients/gRPCClient-CellConfigReport.h>
+#include <gRPCHandlers/gRPCParams/gRPCParam-CellConfigReportMsg.h>
+#include <sstream>
+#include <iomanip>
 
 static void cell_config_timeout(int fd, short event, void *arg)
 {
@@ -39,7 +48,7 @@ void cell_config_timer_add(client_t *client) {
 }
 
 void cell_config_request(client_t *client) {
-	asn_enc_rval_t er;
+    asn_enc_rval_t er;
     XRANCPDU *pdu;
     struct Cell cell;
 
@@ -80,5 +89,55 @@ void cell_config_request(client_t *client) {
 }
 
 void cell_config_response(XRANCPDU *pdu) {
-    // TODO
+    // TODO - Update information on Redis DB through NBI - gRPC
+    Config* config = Config::Instance();
+    std::string redisServerInfo = config->redis_ip_addr + ":" + std::to_string(config->redis_port);
+
+    XRANCPDUBody_t payload = pdu->body;
+    CellConfigReport_t body = payload.choice.cellConfigReport;
+    // PLMN ID
+    std::string recvPlmnId;
+    for(int index = 0; index < body.ecgi.pLMN_Identity.size; index++) {
+        std::stringstream stream;
+        stream << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(body.ecgi.pLMN_Identity.buf[index]);
+        recvPlmnId += stream.str();
+    }
+    //ECID
+    std::string recvEcid;
+    for (int index = 0 ; index < body.ecgi.eUTRANcellIdentifier.size; index++) {
+        for (int bitLoopIndex = 7; bitLoopIndex >= 0; bitLoopIndex--) {
+            recvEcid += ((body.ecgi.eUTRANcellIdentifier.buf[index] >> bitLoopIndex) & 1) ? "1" : "0";
+        }
+    }
+
+    gRPCParamCellConfigReportMsg cellConfigReport(recvPlmnId, recvEcid); // PLMN ID and ECID
+    cellConfigReport.setPci(std::to_string(body.pci)); // PCI
+    
+    std::vector<gRPCSubParamCandScellMsg> tmpArr;
+    for (int index = 0; index < body.cand_scells.list.count; index++) {
+        gRPCSubParamCandScellMsg tmpgRPCSubParamCandScellMsg(std::to_string(body.cand_scells.list.array[index]->pci), std::to_string(body.cand_scells.list.array[index]->earfcn_dl));
+        tmpArr.push_back(tmpgRPCSubParamCandScellMsg);        
+    }
+    
+    cellConfigReport.setCandScells(tmpArr);
+    cellConfigReport.setEarfcnDl(std::to_string(body.earfcn_dl));
+    cellConfigReport.setEarfcnUl(std::to_string(body.earfcn_ul));
+    cellConfigReport.setRbsPerTtiDl(std::to_string(body.rbs_per_tti_dl));
+    cellConfigReport.setRbsPerTtiUl(std::to_string(body.rbs_per_tti_ul));
+    cellConfigReport.setNumTxAntenna(std::to_string(body.num_tx_antenna));
+    cellConfigReport.setDuplexMode(std::to_string(body.duplex_mode));
+    cellConfigReport.setMaxNumConnectedUes(std::to_string(body.max_num_connected_ues));
+    cellConfigReport.setMaxNumConnectedBearers(std::to_string(body.max_num_connected_bearers));
+    cellConfigReport.setMaxNumUesSchedPerTtiDl(std::to_string(body.max_num_ues_sched_per_tti_dl));
+    cellConfigReport.setMaxNumUesSchedPerTtiUl(std::to_string(body.max_num_ues_sched_per_tti_ul));
+    cellConfigReport.setDlfsSchedEnable(std::to_string(body.dlfs_sched_enable));
+            
+    gRPCClientCellConfigReport reportService(grpc::CreateChannel(redisServerInfo, grpc::InsecureChannelCredentials()));
+    int resultCode = reportService.UpdateCellConfig(cellConfigReport);
+
+    if (resultCode != 1) {
+        std::cout << "** CellConfigReport is not updated well due to a NBI connection problem **";
+    }
+
+    
 }
