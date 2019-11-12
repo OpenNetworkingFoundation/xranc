@@ -1,17 +1,17 @@
 {
     "active_cells": [
       {
-        "plmn_id": "000001",
+        "plmn_id": "732111",
         "eci": "00000010",
         "ip_addr": "127.0.0.1"
       },
       {
-        "plmn_id": "000002",
+        "plmn_id": "732111",
         "eci": "00000020",
         "ip_addr": "127.0.0.2"
       },
       {
-        "plmn_id": "000003",
+        "plmn_id": "732111",
         "eci": "00000030",
         "ip_addr": "127.0.0.3"
       }
@@ -19,11 +19,14 @@
     "l2_meas_report_interval_ms": 5000,
     "rx_signal_meas_report_interval_ms": 7000,
     "xranc_cellconfigrequest_interval_seconds": 5,
-    "xranc_bind_ip": "1.1.1.1",
-    "xranc_port": 7891,
+    "xranc_bind_ip": "10.0.0.10",
+    "xranc_port": 5555,
     "admission_success": true,
     "bearer_success": true,
     "no_meas_link_removal_ms": 1000000,
     "idle_ue_removal_ms": 1,
-    "nb_response_timeout_ms": 10000
+    "nb_response_timeout_ms": 10000,
+    "redis_ip_addr": "10.0.0.11",
+    "redis_port": 50002,
+    "xranc_nbi_port": 50001
 }

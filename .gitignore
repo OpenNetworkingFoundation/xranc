@@ -7,6 +7,13 @@
 *.o
 *.obj
 
+# gRPC source codes
+*.pb.cc
+*.pb.h
+
+# Temporal file
+*.swp
+
 # Precompiled Headers
 *.gch
 *.pch

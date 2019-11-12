@@ -41,6 +41,9 @@ class Config {
         unsigned int no_meas_link_removal_ms;
         unsigned int idle_ue_removal_ms;
         unsigned int nb_response_timeout_ms;
+        string redis_ip_addr;
+        unsigned int redis_port;
+        unsigned int xranc_nbi_port;
 
         static Config* Instance();
         void parse(string config_file);
