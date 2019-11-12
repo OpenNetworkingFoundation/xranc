@@ -17,6 +17,7 @@
 #ifndef _context_H
 #define _context_H
 
+#include <pthread.h>
 #include <event2/event.h>
 #include <event2/bufferevent.h>
 #include <event2/buffer.h>
@@ -26,6 +27,8 @@
  * Struct to carry around context (context)-specific data.
  */
 typedef struct context {
+    pthread_t thread;
+
     /* The context's socket. */
     int fd;
 
@@ -44,6 +47,11 @@ typedef struct context {
 
     /*  IP address of this context */
     char ip[INET_ADDRSTRLEN];
+
+    char server_ip[INET_ADDRSTRLEN];
+    int port;
+    int num_ues;
+    int enb_index;
 } context_t;
 
 void closecontext(context_t *context);
