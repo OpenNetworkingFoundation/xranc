@@ -21,10 +21,17 @@
 #include <event2/bufferevent.h>
 #include <event2/buffer.h>
 #include <XRANCPDU.h>
+#include <gRPCHandlers/gRPCClients/gRPCClient-CellConfigReport.h>
 
 /**
  * Struct to carry around connection (client)-specific data.
  */
+
+typedef struct ecgi {
+    uint8_t PLMN_Identity[3];
+    uint8_t EUTRANCellIdentifier[4];
+} ecgi_t;
+
 typedef struct client {
     /* The client's socket. */
     int fd;
@@ -44,6 +51,8 @@ typedef struct client {
 
     /*  IP address of this client */
     char ip[INET_ADDRSTRLEN];
+
+    ecgi_t *ecgi;
 } client_t;
 
 void closeClient(client_t *client);

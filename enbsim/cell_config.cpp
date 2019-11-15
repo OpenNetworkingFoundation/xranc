@@ -24,16 +24,23 @@
 #include "context.h"
 #include "config.h"
 
-void copy_ecgi(ECGI_t *dest, ECGI_t *src) {
+
+/*  Test PLMN ID = Test MCC (001) + Test MNC (001) */
+const uint8_t TEST_PLMNID[3] = {0x00, 0x10, 0x01};
+
+static void make_ecgi(ECGI_t *dest, int enb_index) {
     dest->pLMN_Identity.buf = (uint8_t *)calloc(1, sizeof(PLMN_Identity_t));
-    memcpy(dest->pLMN_Identity.buf, src->pLMN_Identity.buf, src->pLMN_Identity.size);
-    dest->pLMN_Identity.size = src->pLMN_Identity.size;
-    dest->eUTRANcellIdentifier.buf = (uint8_t *)calloc(1, src->eUTRANcellIdentifier.size);
-    memcpy(dest->eUTRANcellIdentifier.buf, src->eUTRANcellIdentifier.buf, src->eUTRANcellIdentifier.size);
-    dest->eUTRANcellIdentifier.size = src->eUTRANcellIdentifier.size;
+    memcpy(dest->pLMN_Identity.buf, TEST_PLMNID, 3);
+    dest->pLMN_Identity.size = 3;
+    dest->eUTRANcellIdentifier.buf = (uint8_t *)calloc(1, 4);
+    dest->eUTRANcellIdentifier.buf[0] = 0;
+    dest->eUTRANcellIdentifier.buf[1] = 0;
+    dest->eUTRANcellIdentifier.buf[2] = enb_index;
+    dest->eUTRANcellIdentifier.buf[3] = 0;
+    dest->eUTRANcellIdentifier.size = 4;
 }
 
-int cell_config_request(XRANCPDU *req, char *resp_buf, int resp_buf_size) {
+int cell_config_request(XRANCPDU *req, char *resp_buf, int resp_buf_size, context_t *context) {
     // TODO
     XRANCPDU *resp;
     struct Cell cell;
@@ -55,9 +62,7 @@ int cell_config_request(XRANCPDU *req, char *resp_buf, int resp_buf_size) {
 
     resp->body.present = XRANCPDUBody_PR_cellConfigReport;
 
-    /*  FIXME - Copy PLMN Id and eUTRAN cell id from request */
-    copy_ecgi(&resp->body.choice.cellConfigReport.ecgi,
-            &req->body.choice.cellConfigRequest.ecgi);
+    make_ecgi(&resp->body.choice.cellConfigReport.ecgi, context->enb_index);
 
     /*  Physical cell id */
     resp->body.choice.cellConfigReport.pci = 1;

@@ -22,5 +22,5 @@
 
 void cell_config_timer_add(client_t *client);
 void cell_config_request(client_t *client);
-void cell_config_response(XRANCPDU *pdu);
+void cell_config_response(XRANCPDU *pdu, client_t *client);
 #endif

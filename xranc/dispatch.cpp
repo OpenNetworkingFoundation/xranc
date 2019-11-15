@@ -38,7 +38,7 @@ void dispatch(uint8_t *buffer, size_t buf_size, client_t *client) {
 
     switch (pdu->hdr.api_id) {
         case XRANC_API_ID_cellConfigReport:
-            cell_config_response(pdu);
+            cell_config_response(pdu, client);
             break;
         case XRANC_API_ID_uEAdmissionRequest:
             ue_admission_request(pdu, client);
