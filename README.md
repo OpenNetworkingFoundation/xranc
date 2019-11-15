@@ -1,6 +1,14 @@
 # xranc
 
-## Install dependencies
+## Quick start
+```
+git clone https://github.com/OpenNetworkingFoundation/xranc.git
+cd xranc
+make
+```
+
+## Manual steps to install xRANc
+### Install dependencies
 ```
 sudo apt-get install libevent2-dev # for Ubuntu 16.04
 sudo apt-get install libevent-dev # for Ubuntu 18.04
@@ -8,22 +16,22 @@ sudo apt-get install libjsoncpp-dev
 sudo apt install libsctp-dev
 ```
 
-### Install gRPC
+#### Install gRPC
 Please follow this [link](https://github.com/grpc/grpc/blob/v1.25.0/BUILDING.md)
 
-### Clone with SSH or HTTPS
+#### Clone with SSH or HTTPS
 ```
 git clone git@github.com:OpenNetworkingFoundation/xranc.git
 git clone https://github.com/OpenNetworkingFoundation/xranc.git
 ```
 
-### Update submodules
+#### Update submodules
 ```
 git submodule init
 git submodule update
 ```
 
-### Build and run
+#### Build and run
 ```
 cd xranc
 make
@@ -44,8 +52,7 @@ Start enbsim with 20 enodebs. Currently it only responds to cell config requests
 ```
 ./enbsim 127.0.0.1 5555 20 1
 ```
-
-### Misc
+#### Misc
 
 Command to test sctp connection
 ```
