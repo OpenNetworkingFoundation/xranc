@@ -69,17 +69,25 @@ void cell_config_request(client_t *client) {
     pdu->body.present = XRANCPDUBody_PR_cellConfigRequest;
 
     /*  Fill in the ECGI */
-    uint8_t PLMN_Identity[3];
-    config->get_plmn_id(client->ip, PLMN_Identity);
-    pdu->body.choice.cellConfigRequest.ecgi.pLMN_Identity.buf = (uint8_t *)calloc(1, sizeof(PLMN_Identity)/sizeof(PLMN_Identity[0]));
-    memcpy(pdu->body.choice.cellConfigRequest.ecgi.pLMN_Identity.buf, PLMN_Identity, sizeof(PLMN_Identity)/sizeof(PLMN_Identity[0]));
-    pdu->body.choice.cellConfigRequest.ecgi.pLMN_Identity.size = sizeof(PLMN_Identity)/sizeof(PLMN_Identity[0]);
+    //uint8_t PLMN_Identity[3];
+    //config->get_plmn_id(client->ip, PLMN_Identity);
+    pdu->body.choice.cellConfigRequest.ecgi.pLMN_Identity.buf = (uint8_t *)calloc(1, 3);
+    //memcpy(pdu->body.choice.cellConfigRequest.ecgi.pLMN_Identity.buf, PLMN_Identity, sizeof(PLMN_Identity)/sizeof(PLMN_Identity[0]));
+    pdu->body.choice.cellConfigRequest.ecgi.pLMN_Identity.size = 3;
 
-    uint8_t EUTRANCellIdentifier[4];
-    config->get_eci(client->ip, EUTRANCellIdentifier);
-    pdu->body.choice.cellConfigRequest.ecgi.eUTRANcellIdentifier.buf = (uint8_t *)calloc(1, sizeof(EUTRANCellIdentifier)/sizeof(EUTRANCellIdentifier[0]));
-    memcpy(pdu->body.choice.cellConfigRequest.ecgi.eUTRANcellIdentifier.buf, EUTRANCellIdentifier, sizeof(EUTRANCellIdentifier)/sizeof(EUTRANCellIdentifier[0]));
-    pdu->body.choice.cellConfigRequest.ecgi.eUTRANcellIdentifier.size = sizeof(EUTRANCellIdentifier)/sizeof(EUTRANCellIdentifier[0]);
+    //uint8_t EUTRANCellIdentifier[4];
+    //config->get_eci(client->ip, EUTRANCellIdentifier);
+    pdu->body.choice.cellConfigRequest.ecgi.eUTRANcellIdentifier.buf = (uint8_t *)calloc(1, 4);
+    //memcpy(pdu->body.choice.cellConfigRequest.ecgi.eUTRANcellIdentifier.buf, EUTRANCellIdentifier, sizeof(EUTRANCellIdentifier)/sizeof(EUTRANCellIdentifier[0]));
+    pdu->body.choice.cellConfigRequest.ecgi.eUTRANcellIdentifier.size = 4;
+
+    if (client->ecgi) {
+        memcpy(pdu->body.choice.cellConfigRequest.ecgi.pLMN_Identity.buf, client->ecgi->PLMN_Identity, 3);
+        memcpy(pdu->body.choice.cellConfigRequest.ecgi.eUTRANcellIdentifier.buf, client->ecgi->EUTRANCellIdentifier, 4);
+    } else {
+        memset(pdu->body.choice.cellConfigRequest.ecgi.pLMN_Identity.buf, 0, 3);
+        memset(pdu->body.choice.cellConfigRequest.ecgi.eUTRANcellIdentifier.buf, 0, 4);
+    }
 
     xer_fprint(stdout, &asn_DEF_XRANCPDU, pdu);
 
@@ -88,7 +96,7 @@ void cell_config_request(client_t *client) {
     ASN_STRUCT_FREE(asn_DEF_XRANCPDU, pdu);
 }
 
-void cell_config_response(XRANCPDU *pdu) {
+void cell_config_response(XRANCPDU *pdu, client_t *client) {
     // TODO - Update information on Redis DB through NBI - gRPC
     Config* config = Config::Instance();
     std::string redisServerInfo = config->redis_ip_addr + ":" + std::to_string(config->redis_port);
@@ -112,13 +120,13 @@ void cell_config_response(XRANCPDU *pdu) {
 
     gRPCParamCellConfigReportMsg cellConfigReport(recvPlmnId, recvEcid); // PLMN ID and ECID
     cellConfigReport.setPci(std::to_string(body.pci)); // PCI
-    
+
     std::vector<gRPCSubParamCandScellMsg> tmpArr;
     for (int index = 0; index < body.cand_scells.list.count; index++) {
         gRPCSubParamCandScellMsg tmpgRPCSubParamCandScellMsg(std::to_string(body.cand_scells.list.array[index]->pci), std::to_string(body.cand_scells.list.array[index]->earfcn_dl));
-        tmpArr.push_back(tmpgRPCSubParamCandScellMsg);        
+        tmpArr.push_back(tmpgRPCSubParamCandScellMsg);
     }
-    
+
     cellConfigReport.setCandScells(tmpArr);
     cellConfigReport.setEarfcnDl(std::to_string(body.earfcn_dl));
     cellConfigReport.setEarfcnUl(std::to_string(body.earfcn_ul));
@@ -131,13 +139,17 @@ void cell_config_response(XRANCPDU *pdu) {
     cellConfigReport.setMaxNumUesSchedPerTtiDl(std::to_string(body.max_num_ues_sched_per_tti_dl));
     cellConfigReport.setMaxNumUesSchedPerTtiUl(std::to_string(body.max_num_ues_sched_per_tti_ul));
     cellConfigReport.setDlfsSchedEnable(std::to_string(body.dlfs_sched_enable));
-            
+
+    if (client->ecgi == NULL) {
+        client->ecgi = (ecgi_t *)malloc(sizeof(ecgi_t));
+        memcpy(client->ecgi->PLMN_Identity, body.ecgi.pLMN_Identity.buf, body.ecgi.pLMN_Identity.size);
+        memcpy(client->ecgi->EUTRANCellIdentifier, body.ecgi.eUTRANcellIdentifier.buf, body.ecgi.eUTRANcellIdentifier.size);
+    }
+
     gRPCClientCellConfigReport reportService(grpc::CreateChannel(redisServerInfo, grpc::InsecureChannelCredentials()));
     int resultCode = reportService.UpdateCellConfig(cellConfigReport);
 
     if (resultCode != 1) {
         std::cout << "** CellConfigReport is not updated well due to a NBI connection problem **";
     }
-
-    
 }

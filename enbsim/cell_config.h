@@ -20,5 +20,5 @@
 #include <XRANCPDU.h>
 #include "context.h"
 
-int cell_config_request(XRANCPDU *req, char *resp_buf, int resp_buf_size);
+int cell_config_request(XRANCPDU *req, char *resp_buf, int resp_buf_size, context_t *context);
 #endif

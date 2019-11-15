@@ -139,6 +139,7 @@ static int workers_init(char *server_ip, int port, int session_count, int num_ue
             free(context);
             return 1;
         }
+        sleep(1);
     }
 }
 

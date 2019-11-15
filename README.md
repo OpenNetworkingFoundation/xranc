@@ -39,6 +39,19 @@ make
 ```
 This would start the xran-controller listening for enodeb to connect. Currently using the Java enodeb simulator that was developed for the xran-controller ONOS app. Check out this [link(https://wiki.onosproject.org/display/ONOS/xRAN+Controller+Integration)] for how to build and run the enodeb simulator.
 
+### enbsim
+enbsim runs on the same machine as xranc.
+```
+cd enbsim; make clean; make
+```
+enbsim uses private ip addresses 127.0.0.0/8 on loopback. Run the config-ip.sh script to configure.
+```
+sudo enbsim/config-ip.sh
+```
+Start enbsim with 20 enodebs. Currently it only responds to cell config requests. If xranc is listening on 127.0.0.1 port 5555, the following command will start 20 enodebs:
+```
+./enbsim 127.0.0.1 5555 20 1
+```
 #### Misc
 
 Command to test sctp connection

@@ -42,7 +42,7 @@ void dispatch(uint8_t *buffer, size_t buf_size, context_t *context) {
 
     switch (req_pdu->hdr.api_id) {
         case XRANC_API_ID_cellConfigRequest:
-            nbytes = cell_config_request(req_pdu, resp_buf, resp_buf_size);
+            nbytes = cell_config_request(req_pdu, resp_buf, resp_buf_size, context);
             break;
 /*
         case XRANC_API_ID_uEAdmissionRequest:
