@@ -27,9 +27,9 @@
 #include <memory>
 #include <grpcpp/grpcpp.h>
 #include <grpc/support/log.h>
-#include <protobufs/gRPC-CellConfigReport.grpc.pb.h>
-#include <gRPCHandlers/gRPCClients/gRPCClient-CellConfigReport.h>
-#include <gRPCHandlers/gRPCParams/gRPCParam-CellConfigReportMsg.h>
+#include <gRPCAPIs/cpp/gRPCPB/gRPC-CellConfigReport.grpc.pb.h>
+#include <gRPCAPIs/cpp/gRPCParams/gRPCParam-CellConfigReportMsg.h>
+#include "gRPCHandlers/gRPCClientImpls/gRPCClientImpl-CellConfigReport.h"
 #include <sstream>
 #include <iomanip>
 
@@ -146,10 +146,9 @@ void cell_config_response(XRANCPDU *pdu, client_t *client) {
         memcpy(client->ecgi->EUTRANCellIdentifier, body.ecgi.eUTRANcellIdentifier.buf, body.ecgi.eUTRANcellIdentifier.size);
     }
 
-    gRPCClientCellConfigReport reportService(grpc::CreateChannel(redisServerInfo, grpc::InsecureChannelCredentials()));
+    gRPCClientImplCellConfigReport reportService(grpc::CreateChannel(redisServerInfo, grpc::InsecureChannelCredentials()));
     int resultCode = reportService.UpdateCellConfig(cellConfigReport);
-
     if (resultCode != 1) {
-        std::cout << "** CellConfigReport is not updated well due to a NBI connection problem **";
+        std::cout << "** CellConfigReport is not updated well due to a NBI connection problem **" << std::endl;
     }
 }

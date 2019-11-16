@@ -26,8 +26,7 @@ class gRPCClientCellConfigReport : public gRPCClient {
     public:
         gRPCClientCellConfigReport();
         ~gRPCClientCellConfigReport();
-        virtual void UpdateCellConfig(gRPCParamCellConfigReportMsg cellConfigReportMsg) = 0;
-        virtual void AsyncCompleteRpc() = 0;
+        virtual int UpdateCellConfig(gRPCParamCellConfigReportMsg cellConfigReportMsg) = 0;
          
     private:
 

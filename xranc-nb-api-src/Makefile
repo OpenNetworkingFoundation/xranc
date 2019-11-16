@@ -12,29 +12,30 @@ GRPC_CPP_PLUGIN_PATH = `which $(GRPC_CPP_PLUGIN)`
 PROTOS_PATH = ./protobufs
 PROTOS_SRC = $(wildcard $(PROTOS_PATH)/*.proto)
 PB_DIR_PATH = ./gRPCAPIs/cpp/gRPCPB
-PB_CPP_SRCS = $(wildcard $(PB_DIR_PATH)/*.pb.cc)
-PB_GRPC_SRCS = $(wildcard $(PB_DIR_PATH)/*.grpc.pb.cc)
+PB_CPP_SRCS = $(addprefix $(PB_DIR_PATH)/, $(basename $(notdir $(PROTOS_SRC))).pb.cc)
+PB_GRPC_SRCS = $(addprefix $(PB_DIR_PATH)/, $(basename $(notdir $(PROTOS_SRC))).grpc.pb.cc)
 GRPC_API_PATH = ./gRPCAPIs
 GRPC_API_CPP_PATH = $(GRPC_API_PATH)/cpp
 GRPC_API_SERVERS_SRCS = $(wildcard $(GRPC_API_CPP_PATH)/gRPCServers/*.cpp)
 GRPC_API_CLIENTS_SRCS = $(wildcard $(GRPC_API_CPP_PATH)/gRPCClients/*.cpp)
 GRPC_API_PARAMS_SRCS = $(wildcard $(GRPC_API_CPP_PATH)/gRPCParams/*.cpp)
 
-all: $(NBI_LIB)
+all: gen_dir $(PROTOS_SRC:.proto=.pb.cc) $(PROTOS_SRC:.proto=.grpc.pb.cc) $(PB_CPP_SRCS:.cc=.o) $(PB_GRPC_SRCS:.cc=.o) $(NBI_LIB)
+
+gen_dir:
+	mkdir -p $(PB_DIR_PATH)
 
 %.grpc.pb.cc: %.proto
-	mkdir -p $(PB_DIR_PATH)
 	$(PROTOC) -I $(PROTOS_PATH) --grpc_out=$(PB_DIR_PATH) --plugin=protoc-gen-grpc=$(GRPC_CPP_PLUGIN_PATH) $<
 
 %.pb.cc: %.proto
-	mkdir -p $(PB_DIR_PATH)
 	$(PROTOC) -I $(PROTOS_PATH) --cpp_out=$(PB_DIR_PATH) $<
 
-%.o: %.cpp %.cc 
-	$(CXX) $(CXFLAGS) -o $@ -c $<
+%.o: %.cpp %.cc
+	$(CXX) $(CXFLAGS) $(LDFLAGS) -o  $@ -c  $<
 
-$(NBI_LIB):| $(PROTOS_SRC:.proto=.pb.cc) $(PROTOS_SRC:.proto=.grpc.pb.cc) $(PB_CPP_SRCS:.cc=.o) $(PB_GRPC_SRCS:.cc=.o) $(GRPC_API_PARAMS_SRCS:.cpp=.o) $(GRPC_API_SERVERS_SRCS:.cpp=.o) $(GRPC_API_CLIENTS_SRCS:.cpp=.o)
-	$(AR) $(RCS) $@ $(PB_CPP_SRCS:.cc=.o) $(PB_GRPC_SRCS:.cc=.o) $(GRPC_API_PARAMS_SRCS:.cc=.o) $(GRPC_API_SERVERS_SRCS:.cc=.o) $(GRPC_API_CLIENTS_SRCS:.cc=.o)
+$(NBI_LIB):| $(GRPC_API_PARAMS_SRCS:.cpp=.o) $(GRPC_API_SERVERS_SRCS:.cpp=.o) $(GRPC_API_CLIENTS_SRCS:.cpp=.o)
+	$(AR) $(RCS) $@ $(PB_CPP_SRCS:.cc=.o) $(PB_GRPC_SRCS:.cc=.o) $(GRPC_API_PARAMS_SRCS:.cpp=.o) $(GRPC_API_SERVERS_SRCS:.cpp=.o) $(GRPC_API_CLIENTS_SRCS:.cpp=.o)
 
 clean:
 	rm -f $(NBI_LIB)
