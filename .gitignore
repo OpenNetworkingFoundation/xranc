@@ -44,3 +44,6 @@
 
 enbsim/enbsim
 xranc/xranc
+
+# IDE
+.vscode

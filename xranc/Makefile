@@ -17,10 +17,11 @@ XRANC_PROGRAM_SRCS = \
 	dispatch.cpp \
 	cell_config.cpp \
 	handler.cpp
+GRPC_HANDLER_CLIENT_IMPL_SRCS = $(wildcard ./gRPCHandlers/gRPCClientImpls/*.cpp)
 
 all: $(XRANC_PROGRAM)
 
-$(XRANC_PROGRAM): ../xranc-sb-api-src/$(ASN_LIBRARY) ../xranc-nb-api-src/$(NBI_LIBRARY) $(XRANC_PROGRAM_SRCS:.cpp=.o)
+$(XRANC_PROGRAM): ../xranc-sb-api-src/$(ASN_LIBRARY) ../xranc-nb-api-src/$(NBI_LIBRARY) $(GRPC_HANDLER_CLIENT_IMPL_SRCS:.cpp=.o) $(XRANC_PROGRAM_SRCS:.cpp=.o)
 	$(LD) -o $@ $^ ../xranc-sb-api-src/$(ASN_LIBRARY) ../xranc-nb-api-src/$(NBI_LIBRARY) $(LIBS) $(LDFLAGS)
 
 %.o: %.cpp

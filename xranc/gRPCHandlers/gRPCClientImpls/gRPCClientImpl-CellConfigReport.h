@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-#ifndef _GRPCCLIENT_CELLCONFIGREPORT_H_
-#define _GRPCCLIENT_CELLCONFIGREPORT_H_
+#ifndef _GRPCCLIENTIMPL_CELLCONFIGREPORT_H_
+#define _GRPCCLIENTIMPL_CELLCONFIGREPORT_H_
 
-#include <iostream>
-#include <memory>
-
-#include <grpcpp/grpcpp.h>
-#include <grpc/support/log.h>
-#include "../../protobufs/gRPC-CellConfigReport.grpc.pb.h"
-#include "../gRPCParams/gRPCParam-CellConfigReportMsg.h"
+#include <gRPCAPIs/cpp/gRPCClients/gRPCClient-CellConfigReport.h>
+#include <gRPCAPIs/cpp/gRPCPB/gRPC-CellConfigReport.grpc.pb.h>
+#include <gRPCAPIs/cpp/gRPCParams/gRPCParam-CellConfigReportMsg.h>
 
 using grpc::Channel;
 using grpc::ClientAsyncResponseReader;
@@ -36,14 +32,18 @@ using gRPCCellConfigReport::gMsgCandScell;
 using gRPCCellConfigReport::gMsgCellConfigValues;
 using gRPCCellConfigReport::gMsgResults;
 
-class gRPCClientCellConfigReport {
+class gRPCClientImplCellConfigReport : public gRPCClientCellConfigReport {
+
     public:
-        explicit gRPCClientCellConfigReport(std::shared_ptr<Channel> channel)
+        explicit gRPCClientImplCellConfigReport(std::shared_ptr<Channel> channel)
             : stub_(gRPCCellConfigReportUpdater::NewStub(channel)) {};
-        int UpdateCellConfig(gRPCParamCellConfigReportMsg cellConfigReport);
+        
+        int UpdateCellConfig(gRPCParamCellConfigReportMsg cellConfigReportMsg);
+
 
     private:
         std::unique_ptr<gRPCCellConfigReportUpdater::Stub> stub_;
+    protected:
 };
 
-#endif /* _GRPCCLIENT_CELLCONFIGREPORT_H_ */
+#endif /* _GRPCCLIENTIMPL_CELLCONFIGREPORT_H_ */
