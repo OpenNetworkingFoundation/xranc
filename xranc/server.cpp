@@ -56,7 +56,7 @@
 #define CONNECTION_BACKLOG 8
 /* Number of worker threads.  Should match number of CPU cores reported in 
  * /proc/cpuinfo. */
-#define NUM_THREADS 8
+#define NUM_THREADS 20
 
 /* Behaves similarly to fprintf(stderr, ...), but adds file, line, and function
  information. */
