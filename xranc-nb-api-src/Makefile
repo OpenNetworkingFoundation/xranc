@@ -20,15 +20,15 @@ GRPC_API_SERVERS_SRCS = $(wildcard $(GRPC_API_CPP_PATH)/gRPCServers/*.cpp)
 GRPC_API_CLIENTS_SRCS = $(wildcard $(GRPC_API_CPP_PATH)/gRPCClients/*.cpp)
 GRPC_API_PARAMS_SRCS = $(wildcard $(GRPC_API_CPP_PATH)/gRPCParams/*.cpp)
 
-all: gen_dir $(PROTOS_SRC:.proto=.pb.cc) $(PROTOS_SRC:.proto=.grpc.pb.cc) $(PB_CPP_SRCS:.cc=.o) $(PB_GRPC_SRCS:.cc=.o) $(NBI_LIB)
+all: $(PROTOS_SRC:.proto=.pb.cc) $(PROTOS_SRC:.proto=.grpc.pb.cc) $(PB_CPP_SRCS:.cc=.o) $(PB_GRPC_SRCS:.cc=.o) $(NBI_LIB)
 
 gen_dir:
 	mkdir -p $(PB_DIR_PATH)
 
-%.grpc.pb.cc: %.proto
+%.grpc.pb.cc: %.proto gen_dir
 	$(PROTOC) -I $(PROTOS_PATH) --grpc_out=$(PB_DIR_PATH) --plugin=protoc-gen-grpc=$(GRPC_CPP_PLUGIN_PATH) $<
 
-%.pb.cc: %.proto
+%.pb.cc: %.proto gen_dir
 	$(PROTOC) -I $(PROTOS_PATH) --cpp_out=$(PB_DIR_PATH) $<
 
 %.o: %.cpp %.cc
