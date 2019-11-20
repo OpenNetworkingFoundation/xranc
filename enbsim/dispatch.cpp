@@ -18,6 +18,7 @@
 #include "dispatch.h"
 #include "context.h"
 #include "cell_config.h"
+#include "ue.h"
 
 void dispatch(uint8_t *buffer, size_t buf_size, context_t *context) {
     XRANCPDU *req_pdu = 0;
@@ -78,5 +79,12 @@ void dispatch(uint8_t *buffer, size_t buf_size, context_t *context) {
             closecontext(context);
         }
         evbuffer_free(tmp);
+    }
+
+    if (context->connected = false) {
+        printf("starting ues\n");
+        context->connected = true;
+
+        start_ues(context);
     }
 }

@@ -52,6 +52,7 @@ typedef struct context {
     int port;
     int num_ues;
     int enb_index;
+    bool connected;
 } context_t;
 
 void closecontext(context_t *context);
