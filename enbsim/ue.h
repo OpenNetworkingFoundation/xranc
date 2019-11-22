@@ -16,6 +16,8 @@
 
 #ifndef _UE_H
 #define _UE_H
+#include <XRANCPDU.h>
 
 void start_ues(context_t *context);
+void ue_admission_response(XRANCPDU *req, context_t *context);
 #endif

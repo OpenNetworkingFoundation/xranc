@@ -39,6 +39,8 @@
 #include <event2/event.h>
 #include <signal.h>
 
+#include "spdlog/spdlog.h"
+
 #include "server.h"
 #include "client.h"
 #include "workqueue.h"
@@ -256,7 +258,7 @@ void on_accept(evutil_socket_t fd, short ev, void *arg) {
     job->user_data = client;
 
     inet_ntop(AF_INET, &(((struct sockaddr_in*)&client_addr)->sin_addr), client->ip, INET_ADDRSTRLEN);
-    warn("connected to %s", client->ip);
+    spdlog::info("connected to {}", client->ip);
 
     client_timers_add(client);
 
@@ -336,7 +338,7 @@ int runServer(const Config& config) {
                           on_accept, (void *)&workqueue);
     event_add(ev_accept, NULL);
 
-    printf("Server running.\n");
+    spdlog::info("Server started");
 
     /* Start the event loop. */
     event_base_dispatch(evbase);

@@ -17,16 +17,19 @@
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
+
+#include "logger.h"
+
 #include <config.h>
 #include <server.h>
-
-using namespace std;
 
 int main(int argc, char *argv[]) {
     Config* config = Config::Instance();
     config->parse("xran-cfg.json");
 
-    //Config* config = Config::Instance("xran-cfg.json");
-    cout << *config;
+    logger_init();
+    log_info("Welcome to XRANC");
+
+    log_debug("XRANC config: {}", *config);
     runServer(*config);
 }

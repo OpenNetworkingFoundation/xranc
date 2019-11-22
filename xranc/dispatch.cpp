@@ -19,48 +19,71 @@
 #include "client.h"
 #include "cell_config.h"
 #include "handler.h"
+#include "logger.h"
 
-void dispatch(uint8_t *buffer, size_t buf_size, client_t *client) {
-    XRANCPDU *pdu = 0;
+using namespace std;
+
+static size_t decode(XRANCPDU **pdu, uint8_t *buffer, size_t buf_size) {
     asn_dec_rval_t rval;
-    rval = asn_decode(0, ATS_BER, &asn_DEF_XRANCPDU, (void **)&pdu, buffer, buf_size);
+    rval = asn_decode(0, ATS_BER, &asn_DEF_XRANCPDU, (void **)pdu, buffer, buf_size);
     switch (rval.code) {
         case RC_OK:
             break;
         case RC_WMORE:
         case RC_FAIL:
         default:
-            ASN_STRUCT_FREE(asn_DEF_XRANCPDU, pdu);
-            return;
+	    printf("ERROR****************\n");
+            //ASN_STRUCT_FREE(asn_DEF_XRANCPDU, pdu);
+            return 0;
     }
 
-    xer_fprint(stdout, &asn_DEF_XRANCPDU, pdu);
+    return rval.consumed;
+}
 
-    switch (pdu->hdr.api_id) {
-        case XRANC_API_ID_cellConfigReport:
-            cell_config_response(pdu, client);
-            break;
-        case XRANC_API_ID_uEAdmissionRequest:
-            ue_admission_request(pdu, client);
-            break;
-        case XRANC_API_ID_uEAdmissionStatus:
-            ue_admission_status(pdu, client);
-            break;
-        case XRANC_API_ID_uEContextUpdate:
-            ue_context_update(pdu, client);
-            break;
-        case XRANC_API_ID_bearerAdmissionRequest:
-            bearer_admission_request(pdu, client);
-            break;
-        case XRANC_API_ID_bearerAdmissionStatus:
-            bearer_admission_status(pdu, client);
-            break;
-        case XRANC_API_ID_bearerReleaseInd:
-            bearer_release_ind(pdu, client);
-            break;
-        default:
-            printf("Message %lu not handled\n", pdu->hdr.api_id);
-    }
+void dispatch(uint8_t *buffer, size_t buf_size, client_t *client) {
+    XRANCPDU *pdu = 0;
 
-    ASN_STRUCT_FREE(asn_DEF_XRANCPDU, pdu);
+
+    size_t remaining = buf_size;
+    size_t consumed = 0;
+    uint8_t *curr = buffer;
+
+    do {
+        //log_debug("input: remaining={}, consumed={}", remaining, consumed);
+        consumed = decode(&pdu, curr, remaining);
+	remaining -= consumed;
+	curr += consumed;
+
+        trace_pdu(pdu);
+    
+        switch (pdu->hdr.api_id) {
+            case XRANC_API_ID_cellConfigReport:
+                cell_config_response(pdu, client);
+                break;
+            case XRANC_API_ID_uEAdmissionRequest:
+                ue_admission_request(pdu, client);
+                break;
+            case XRANC_API_ID_uEAdmissionStatus:
+                ue_admission_status(pdu, client);
+                break;
+            case XRANC_API_ID_uEContextUpdate:
+                ue_context_update(pdu, client);
+                break;
+            case XRANC_API_ID_bearerAdmissionRequest:
+                bearer_admission_request(pdu, client);
+                break;
+            case XRANC_API_ID_bearerAdmissionStatus:
+                bearer_admission_status(pdu, client);
+                break;
+            case XRANC_API_ID_bearerReleaseInd:
+                bearer_release_ind(pdu, client);
+                break;
+            default:
+                printf("Message %lu not handled\n", pdu->hdr.api_id);
+        }
+
+        ASN_STRUCT_FREE(asn_DEF_XRANCPDU, pdu);
+        pdu = 0;
+        
+    } while (remaining);
 }

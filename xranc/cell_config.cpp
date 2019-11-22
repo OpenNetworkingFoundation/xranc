@@ -33,6 +33,8 @@
 #include <sstream>
 #include <iomanip>
 
+#include "logger.h"
+
 static void cell_config_timeout(int fd, short event, void *arg)
 {
     cell_config_request((client_t *)arg);
@@ -88,8 +90,6 @@ void cell_config_request(client_t *client) {
         memset(pdu->body.choice.cellConfigRequest.ecgi.pLMN_Identity.buf, 0, 3);
         memset(pdu->body.choice.cellConfigRequest.ecgi.eUTRANcellIdentifier.buf, 0, 4);
     }
-
-    xer_fprint(stdout, &asn_DEF_XRANCPDU, pdu);
 
     client_send(pdu, client);
 
@@ -149,6 +149,6 @@ void cell_config_response(XRANCPDU *pdu, client_t *client) {
     gRPCClientImplCellConfigReport reportService(grpc::CreateChannel(redisServerInfo, grpc::InsecureChannelCredentials()));
     int resultCode = reportService.UpdateCellConfig(cellConfigReport);
     if (resultCode != 1) {
-        std::cout << "** CellConfigReport is not updated well due to a NBI connection problem **" << std::endl;
+        log_warn("CellConfigReport is not updated well due to a NBI connection problem");
     }
 }

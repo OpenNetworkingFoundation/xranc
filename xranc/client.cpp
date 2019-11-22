@@ -18,6 +18,7 @@
 #include "client.h"
 #include "config.h"
 #include "cell_config.h"
+#include "logger.h"
 
 void closeClient(client_t *client) {
     if (client != NULL) {
@@ -42,17 +43,16 @@ void client_send(XRANCPDU *pdu, client_t *client) {
     int buf_size = 4096;
 	asn_enc_rval_t er;
 
-	er = asn_encode_to_buffer(0, ATS_BER, &asn_DEF_XRANCPDU, pdu, buffer, buf_size);
+    trace_pdu(pdu);
+
+    er = asn_encode_to_buffer(0, ATS_BER, &asn_DEF_XRANCPDU, pdu, buffer, buf_size);
     if(er.encoded > buf_size) {
        fprintf(stderr, "Buffer of size %d is too small for %s, need %zu\n",
            buf_size, asn_DEF_XRANCPDU.name, er.encoded);
     }
 
-    struct evbuffer *tmp = evbuffer_new();
-    evbuffer_add(tmp, buffer, er.encoded);
-    if (bufferevent_write_buffer(client->buf_ev, tmp)) {
+    if (bufferevent_write(client->buf_ev, buffer, er.encoded)) {
         printf("Error sending data to client on fd %d\n", client->fd);
         closeClient(client);
     }
-    evbuffer_free(tmp);
 }
