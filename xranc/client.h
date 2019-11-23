@@ -53,6 +53,8 @@ typedef struct client {
     char ip[INET_ADDRSTRLEN];
 
     ecgi_t *ecgi;
+
+    uint16_t num_ue_admissions;
 } client_t;
 
 void closeClient(client_t *client);

@@ -14,69 +14,80 @@
  * limitations under the License.
  */
 
+#include <iostream>
 #include <XRANCPDU.h>
 #include "dispatch.h"
 #include "context.h"
 #include "cell_config.h"
+#include "ue.h"
 
-void dispatch(uint8_t *buffer, size_t buf_size, context_t *context) {
-    XRANCPDU *req_pdu = 0;
+using namespace std;
+
+static size_t decode(XRANCPDU **pdu, uint8_t *buffer, size_t buf_size) {
     asn_dec_rval_t rval;
-
-    int resp_buf_size = 4096;
-    char resp_buf[resp_buf_size];
-    int nbytes = 0;
-
-    rval = asn_decode(0, ATS_BER, &asn_DEF_XRANCPDU, (void **)&req_pdu, buffer, buf_size);
+    rval = asn_decode(0, ATS_BER, &asn_DEF_XRANCPDU, (void **)pdu, buffer, buf_size);
     switch (rval.code) {
         case RC_OK:
             break;
         case RC_WMORE:
         case RC_FAIL:
         default:
-            ASN_STRUCT_FREE(asn_DEF_XRANCPDU, req_pdu);
-            return;
+	    printf("ERROR****************\n");
+            //ASN_STRUCT_FREE(asn_DEF_XRANCPDU, pdu);
+            return 0;
     }
 
-    xer_fprint(stdout, &asn_DEF_XRANCPDU, req_pdu);
+    return rval.consumed;
+}
 
-    switch (req_pdu->hdr.api_id) {
-        case XRANC_API_ID_cellConfigRequest:
-            nbytes = cell_config_request(req_pdu, resp_buf, resp_buf_size, context);
-            break;
-/*
-        case XRANC_API_ID_uEAdmissionRequest:
-            ue_admission_request(pdu, context);
-            break;
-        case XRANC_API_ID_uEAdmissionStatus:
-            ue_admission_status(pdu, context);
-            break;
-        case XRANC_API_ID_uEContextUpdate:
-            ue_context_update(pdu, context);
-            break;
-        case XRANC_API_ID_bearerAdmissionRequest:
-            bearer_admission_request(pdu, context);
-            break;
-        case XRANC_API_ID_bearerAdmissionStatus:
-            bearer_admission_status(pdu, context);
-            break;
-        case XRANC_API_ID_bearerReleaseInd:
-            bearer_release_ind(pdu, context);
-            break;
-*/
-        default:
-            printf("Message %lu not handled\n", req_pdu->hdr.api_id);
-    }
+void dispatch(uint8_t *buffer, size_t buf_size, context_t *context) {
+    XRANCPDU *pdu = 0;
 
-    ASN_STRUCT_FREE(asn_DEF_XRANCPDU, req_pdu);
+    int resp_buf_size = 4096;
+    char resp_buf[resp_buf_size];
+    int nbytes = 0;
 
-    if (nbytes) {
-        struct evbuffer *tmp = evbuffer_new();
-        evbuffer_add(tmp, resp_buf, nbytes);
-        if (bufferevent_write_buffer(context->buf_ev, tmp)) {
-            printf("Error sending data to context on fd %d\n", context->fd);
-            closecontext(context);
+    size_t remaining = buf_size;
+    size_t consumed = 0;
+    uint8_t *curr = buffer;
+
+    do {
+        //cout << "*********************** remaining = " << remaining << " consumed = " << consumed << endl;
+
+        consumed = decode(&pdu, curr, remaining);
+	remaining -= consumed;
+	curr += consumed;
+
+        //xer_fprint(stdout, &asn_DEF_XRANCPDU, pdu);
+
+        switch (pdu->hdr.api_id) {
+            case XRANC_API_ID_cellConfigRequest:
+                nbytes = cell_config_request(pdu, resp_buf, resp_buf_size, context);
+                break;
+            case XRANC_API_ID_uEAdmissionResponse:
+                ue_admission_response(pdu, context);
+                break;
+            default:
+                printf("Message %lu not handled\n", pdu->hdr.api_id);
         }
-        evbuffer_free(tmp);
+
+        ASN_STRUCT_FREE(asn_DEF_XRANCPDU, pdu);
+	pdu = 0;
+
+        if (nbytes) {
+            //struct evbuffer *tmp = evbuffer_new();
+            //evbuffer_add(tmp, resp_buf, nbytes);
+            if (bufferevent_write(context->buf_ev, resp_buf, nbytes)) {
+                printf("Error sending data to context on fd %d\n", context->fd);
+                closecontext(context);
+            }
+            //evbuffer_free(tmp);
+        }
+    } while (remaining);
+
+    if (context->connected == false) {
+        //printf("starting ues\n");
+        context->connected = true;
+        start_ues(context);
     }
 }

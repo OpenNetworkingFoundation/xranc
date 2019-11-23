@@ -11,7 +11,9 @@ ENBSIM_SRCS = \
 	config.cpp \
 	context.cpp \
 	dispatch.cpp \
-	cell_config.cpp
+	cell_config.cpp \
+	ue.cpp \
+	asn_common.cpp
 
 all: $(ENBSIM) $(ENBSIM)
 

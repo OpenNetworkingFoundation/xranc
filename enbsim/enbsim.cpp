@@ -131,6 +131,7 @@ static int workers_init(char *server_ip, int port, int session_count, int num_ue
           return 1;
         }
         strncpy(context->server_ip, server_ip, INET_ADDRSTRLEN);
+        context->connected = false;
         context->port = port;
         context->num_ues = num_ues;
         context->enb_index = i + 1;

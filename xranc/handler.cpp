@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
+#include <arpa/inet.h>
 #include <XRANCPDU.h>
 #include <CRNTI.h>
 #include "client.h"
+#include "logger.h"
 
 void copy_crnti(CRNTI_t *dest, CRNTI_t *src) {
     dest->buf = (uint8_t *)calloc(1, src->size);
@@ -64,9 +66,13 @@ void ue_admission_request(XRANCPDU *pdu, client_t *client) {
 
     resp->body.choice.uEAdmissionResponse.adm_est_response = AdmEstResponse_success;
 
-    xer_fprint(stdout, &asn_DEF_XRANCPDU, resp);
-
     client_send(resp, client);
+
+    client->num_ue_admissions++;
+
+    log_info("UE admission, enodeb:{}, crnti:{}",
+                resp->body.choice.uEAdmissionResponse.ecgi.eUTRANcellIdentifier.buf[2],
+                ntohs(*(uint16_t *)(resp->body.choice.uEAdmissionResponse.crnti.buf)));
 
     ASN_STRUCT_FREE(asn_DEF_XRANCPDU, resp);
 }
@@ -115,8 +121,6 @@ void bearer_admission_request(XRANCPDU *pdu, client_t *client) {
         ret = ASN_SEQUENCE_ADD(&resp->body.choice.bearerAdmissionResponse.erab_response, erab_response);
         assert(ret == 0);
     }
-
-    xer_fprint(stdout, &asn_DEF_XRANCPDU, resp);
 
     client_send(resp, client);
 

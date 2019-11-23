@@ -46,6 +46,7 @@ int cell_config_request(XRANCPDU *req, char *resp_buf, int resp_buf_size, contex
     struct Cell cell;
     int ret;
 
+    //printf("<- CCReq\n");
     Config* config = Config::Instance();
 
     /*  Allocate an instance of XRANCPDU */
@@ -85,7 +86,7 @@ int cell_config_request(XRANCPDU *req, char *resp_buf, int resp_buf_size, contex
     resp->body.choice.cellConfigReport.max_num_ues_sched_per_tti_ul = 10;
     resp->body.choice.cellConfigReport.dlfs_sched_enable = true;
 
-    xer_fprint(stdout, &asn_DEF_XRANCPDU, resp);
+    //xer_fprint(stdout, &asn_DEF_XRANCPDU, resp);
 
     asn_enc_rval_t er = asn_encode_to_buffer(0, ATS_BER, &asn_DEF_XRANCPDU, resp, resp_buf, resp_buf_size);
     if(er.encoded > resp_buf_size) {
@@ -95,5 +96,6 @@ int cell_config_request(XRANCPDU *req, char *resp_buf, int resp_buf_size, contex
 
     ASN_STRUCT_FREE(asn_DEF_XRANCPDU, resp);
 
+    //printf("-> CCResp %d\n", er.encoded);
     return  er.encoded;
 }

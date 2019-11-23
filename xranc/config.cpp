@@ -4,6 +4,8 @@
 #include <config.h>
 #include <string.h>
 
+using namespace std;
+
 Config* Config::pInstance = NULL;
 
 Config* Config::Instance() {
@@ -43,28 +45,29 @@ void Config::parse(string config_file) {
     xranc_nbi_port = obj["xranc_nbi_port"].asInt();
 }
 
-ostream & operator << (ostream &out, const Config &c) {
-    cout << "l2_meas_report_interval_ms: " << c.l2_meas_report_interval_ms << endl;
-    cout << "rx_signal_meas_report_interval_ms: " << c.rx_signal_meas_report_interval_ms << endl;
-    cout << "xranc_cellconfigrequest_interval_seconds: " << c.xranc_cellconfigrequest_interval_seconds << endl;
-    cout << "xranc_bind_ip: " << c.xranc_bind_ip << endl;
-    cout << "xranc_port: " << c.xranc_port << endl;
-    cout << "admission_success: " << c.admission_success << endl;
-    cout << "bearer_success: " << c.bearer_success << endl;
-    cout << "no_meas_link_removal_ms: " << c.no_meas_link_removal_ms << endl;
-    cout << "idle_ue_removal_ms: " << c.idle_ue_removal_ms << endl;
-    cout << "nb_response_timeout_ms: " << c.nb_response_timeout_ms << endl;
-    cout << "redis_ip_addr: " << c.redis_ip_addr << endl;
+ostream & operator << (ostream &os, const Config &c) {
+    os << "l2_meas_report_interval_ms:" << c.l2_meas_report_interval_ms << ",";
+    os << "rx_signal_meas_report_interval_ms:" << c.rx_signal_meas_report_interval_ms << ",";
+    os << "xranc_cellconfigrequest_interval_seconds: " << c.xranc_cellconfigrequest_interval_seconds << ",";
+    os << "xranc_bind_ip: " << c.xranc_bind_ip << ",";
+    os << "xranc_port: " << c.xranc_port << ",";
+    os << "admission_success: " << c.admission_success << ",";
+    os << "bearer_success: " << c.bearer_success << ",";
+    os << "no_meas_link_removal_ms: " << c.no_meas_link_removal_ms << ",";
+    os << "idle_ue_removal_ms: " << c.idle_ue_removal_ms << ",";
+    os << "nb_response_timeout_ms: " << c.nb_response_timeout_ms << ",";
+    os << "redis_ip_addr: " << c.redis_ip_addr;
 
     for(auto const& x : c.active_cells) {
         Cell c = x.second;
-        cout << endl;
-        cout << "   ip_addr :" << c.ip_addr << endl;
-        cout << "   plmn_id :" << c.plmn_id << endl;
-        cout << "   eci :" << c.eci << endl;
+	os << "{";
+        os << "ip_addr :" << c.ip_addr << ",";
+        os << "plmn_id :" << c.plmn_id << ",";
+        os << "eci :" << c.eci;
+	os << "}";
     }
 
-    return out;
+    return os;
 }
 
 static unsigned char* hexstr_to_char(const char* hexstr, uint8_t *chrs)
