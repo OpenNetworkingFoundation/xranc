@@ -38,7 +38,7 @@ utilities:
 	fi
 	sudo apt install -y build-essential autoconf git pkg-config automake libtool curl make g++ unzip;
 	# build gRPC
-	cd $(GRPC_DIR) && make && sudo make install;
+	cd $(GRPC_DIR) && git submodule update --init && make && sudo make install;
 	# build protobuf
 	cd $(PROTOBUF_DIR) && make && sudo make install;
 	# build hiredis
