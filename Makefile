@@ -19,7 +19,7 @@ build: build_xranc-sb build_xranc-nb build_xranc build_enbsim
 
 modules:
 	cd $(ROOT_DIR) && git submodule init && git submodule update;
-	cd $(GRPC_DIR) && git fetch --all && git checkout $(GRPC_BRANCH);
+	cd $(GRPC_DIR) && git fetch --all && git checkout $(GRPC_BRANCH)
 	cd $(HIREDIS_DIR) && git fetch --all && git checkout $(HIREDIS_TAG);
 
 utilities:
@@ -30,11 +30,11 @@ utilities:
 			sudo apt install -y libevent2-dev libjsoncpp-dev libsctp-dev; \
 		elif [[ $(OS_RELEASE) =~ (18.04) ]]; then \
 			sudo apt update; \
-            sudo apt install libevent-dev libjsoncpp-dev libsctp-dev; \
+			sudo apt install -y libevent-dev libjsoncpp-dev libsctp-dev; \
 		fi \
-	else
+	else \
 		echo "Unsupported OS - Ubuntu 18.04 is recommended"; \
-		exit 1;
+		exit 1; \
 	fi
 	sudo apt install -y build-essential autoconf git pkg-config automake libtool curl make g++ unzip;
 	# build gRPC
