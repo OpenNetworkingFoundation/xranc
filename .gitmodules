@@ -2,3 +2,10 @@
 	path = xranc-sb-api
 	url = https://github.com/OpenNetworkingFoundation/xranc-sb-api.git
 	branch = master
+[submodule "common/hiredis"]
+	path = common/hiredis
+	url = https://github.com/redis/hiredis
+[submodule "common/grpc"]
+	path = common/grpc
+	url = https://github.com/grpc/grpc
+	branch = v1.20.x
