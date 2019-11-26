@@ -7,6 +7,12 @@ cd xranc
 make
 ```
 
+**NOTE**: Makefile in the root directory has four options:
+- make or make all: install everything in this repo
+- make utilities: only install utilities and dependencies
+- make build: build xranc interfaces, xranc, and enbsim
+- make clean: clean all object and binary files
+
 ## Manual steps to install xRANc
 ### Install dependencies
 ```
@@ -18,6 +24,14 @@ sudo apt install libsctp-dev
 
 #### Install gRPC
 Please follow this [link](https://github.com/grpc/grpc/blob/v1.25.0/BUILDING.md)
+
+#### Install hiredis
+```
+git clone https://github.com/redis/hiredis
+cd /path/to/hiredis
+make
+sudo make install
+```
 
 #### Clone with SSH or HTTPS
 ```
