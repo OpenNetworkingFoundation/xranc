@@ -50,11 +50,8 @@ void cell_config_timer_add(client_t *client) {
 }
 
 void cell_config_request(client_t *client) {
-    asn_enc_rval_t er;
     XRANCPDU *pdu;
     struct Cell cell;
-
-    Config* config = Config::Instance();
 
     /*  Allocate an instance of XRANCPDU */
     pdu = (XRANCPDU *)calloc(1, sizeof(XRANCPDU));
@@ -105,14 +102,14 @@ void cell_config_response(XRANCPDU *pdu, client_t *client) {
     CellConfigReport_t body = payload.choice.cellConfigReport;
     // PLMN ID
     std::string recvPlmnId;
-    for(int index = 0; index < body.ecgi.pLMN_Identity.size; index++) {
+    for(uint index = 0; index < body.ecgi.pLMN_Identity.size; index++) {
         std::stringstream stream;
         stream << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(body.ecgi.pLMN_Identity.buf[index]);
         recvPlmnId += stream.str();
     }
     //ECID
     std::string recvEcid;
-    for (int index = 0 ; index < body.ecgi.eUTRANcellIdentifier.size; index++) {
+    for (uint index = 0 ; index < body.ecgi.eUTRANcellIdentifier.size; index++) {
         for (int bitLoopIndex = 7; bitLoopIndex >= 0; bitLoopIndex--) {
             recvEcid += ((body.ecgi.eUTRANcellIdentifier.buf[index] >> bitLoopIndex) & 1) ? "1" : "0";
         }

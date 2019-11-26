@@ -81,7 +81,7 @@ static void readcb(struct bufferevent *bev, void *arg)
     dispatch((uint8_t *)data, tbytes, ctx);
 }
 
-static void eventcb(struct bufferevent *bev, short events, void *ptr)
+static void eventcb(struct bufferevent *bev, short events, void *arg)
 {
     if (events & BEV_EVENT_CONNECTED) {
         evutil_socket_t fd = bufferevent_getfd(bev);
@@ -119,7 +119,8 @@ static void *worker_function(void *arg) {
     }
 
     event_base_dispatch(context->evbase);
-
+    
+    return NULL;
 }
 
 static int workers_init(char *server_ip, int port, int session_count, int num_ues) {
@@ -140,8 +141,8 @@ static int workers_init(char *server_ip, int port, int session_count, int num_ue
             free(context);
             return 1;
         }
-        sleep(1);
     }
+    return 0;
 }
 
 static void timercb(int fd, short event, void *arg) {
@@ -151,7 +152,6 @@ static void timercb(int fd, short event, void *arg) {
 int enbsim_main(int argc, char **argv, const Config& config)
 {
     //struct bufferevent **bevs;
-    int i;
     struct event_base *evbase;
     struct event *timer = NULL;
 

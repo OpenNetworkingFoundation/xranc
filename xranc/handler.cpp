@@ -40,8 +40,11 @@ void copy_erab_response(ERABResponse_t *dest, ERABResponse_t *src) {
 }
 
 void ue_admission_request(XRANCPDU *pdu, client_t *client) {
-    char buffer[4096];
-    int buf_size = 4096;
+
+    log_debug("-> UEAdmReq enodeb:{} crnti:{}",
+                pdu->body.choice.uEAdmissionResponse.ecgi.eUTRANcellIdentifier.buf[2],
+                ntohs(*(uint16_t *)(pdu->body.choice.uEAdmissionResponse.crnti.buf)));
+
     XRANCPDU *resp = (XRANCPDU *)calloc(1, sizeof(XRANCPDU));
 
     /* Fill in the version */
@@ -70,7 +73,7 @@ void ue_admission_request(XRANCPDU *pdu, client_t *client) {
 
     client->num_ue_admissions++;
 
-    log_info("UE admission, enodeb:{}, crnti:{}",
+    log_debug("<- UEAdmResp enodeb:{} crnti:{}",
                 resp->body.choice.uEAdmissionResponse.ecgi.eUTRANcellIdentifier.buf[2],
                 ntohs(*(uint16_t *)(resp->body.choice.uEAdmissionResponse.crnti.buf)));
 
@@ -86,8 +89,6 @@ void ue_context_update(XRANCPDU *pdu, client_t *client) {
 }
 
 void bearer_admission_request(XRANCPDU *pdu, client_t *client) {
-    char buffer[4096];
-    int buf_size = 4096;
     XRANCPDU *resp = (XRANCPDU *)calloc(1, sizeof(XRANCPDU));
 
     /* Fill in the version */

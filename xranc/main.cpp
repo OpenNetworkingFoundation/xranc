@@ -23,11 +23,14 @@
 #include <config.h>
 #include <server.h>
 
+// GLobal logging level
+#define LOG_LEVEL spdlog::level::debug
+
 int main(int argc, char *argv[]) {
     Config* config = Config::Instance();
     config->parse("xran-cfg.json");
 
-    logger_init();
+    logger_init(LOG_LEVEL);
     log_info("Welcome to XRANC");
 
     log_debug("XRANC config: {}", *config);

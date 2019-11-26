@@ -19,18 +19,16 @@
 #include "spdlog/fmt/ostr.h"
 #include <XRANCPDU.h>
 
-// GLobal logging level
-#define LOG_LEVEL spdlog::level::debug
-
 #define TRACE_PDU 0
 
 #define log_error spdlog::error
 #define log_warn spdlog::warn
 #define log_info spdlog::info
 #define log_debug spdlog::debug
+#define log_trace spdlog::trace
 
-static inline void logger_init() {
-    spdlog::set_level(LOG_LEVEL);
+static inline void logger_init(spdlog::level::level_enum level) {
+    spdlog::set_level(level);
 }
 
 static inline void trace_pdu(XRANCPDU *pdu) {

@@ -19,12 +19,19 @@
 #include <cstdlib>
 #include <config.h>
 #include <enbsim.h>
+#include "logger.h"
 
 using namespace std;
+
+// GLobal logging level
+#define LOG_LEVEL spdlog::level::debug
 
 int main(int argc, char *argv[]) {
     Config* config = Config::Instance();
     config->parse("enbsim.json");
+
+    logger_init(LOG_LEVEL);
+    log_info("Welcome to enbsim");
 
     //Config* config = Config::Instance("xran-cfg.json");
     cout << *config;
