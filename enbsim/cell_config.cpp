@@ -23,6 +23,7 @@
 #include "cell_config.h"
 #include "context.h"
 #include "config.h"
+#include "logger.h"
 
 
 /*  Test PLMN ID = Test MCC (001) + Test MNC (001) */
@@ -46,8 +47,7 @@ int cell_config_request(XRANCPDU *req, char *resp_buf, int resp_buf_size, contex
     struct Cell cell;
     int ret;
 
-    //printf("<- CCReq\n");
-    Config* config = Config::Instance();
+    log_debug("<- CCReq enodeb:{}", context->enb_index);
 
     /*  Allocate an instance of XRANCPDU */
     resp = (XRANCPDU *)calloc(1, sizeof(XRANCPDU));
@@ -96,6 +96,7 @@ int cell_config_request(XRANCPDU *req, char *resp_buf, int resp_buf_size, contex
 
     ASN_STRUCT_FREE(asn_DEF_XRANCPDU, resp);
 
-    //printf("-> CCResp %d\n", er.encoded);
+    log_debug("-> CCResp enodeb:{}", context->enb_index);
+
     return  er.encoded;
 }

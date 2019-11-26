@@ -20,6 +20,7 @@
 #include "context.h"
 #include "ue.h"
 #include "asn_common.h"
+#include "logger.h"
 
 void ue_admission_request(context_t *context, uint16_t crnti) {
     char *req_buf = (char *)malloc(4096);
@@ -69,7 +70,7 @@ void ue_admission_request(context_t *context, uint16_t crnti) {
 
     ASN_STRUCT_FREE(asn_DEF_XRANCPDU, req);
 
-    //printf("-> UEAdmReq %d %d\n", crnti, nbytes);
+    log_debug("-> UEAdmReq enodeb:{} crnti:{}", context->enb_index, crnti);
 }
 
 void ue_admission_response(XRANCPDU *pdu, context_t *context) {
@@ -77,13 +78,12 @@ void ue_admission_response(XRANCPDU *pdu, context_t *context) {
 
     crnti = ntohs(*((uint16_t *)(pdu->body.choice.uEAdmissionResponse.crnti.buf)));
 
-    //printf("<- UEAdmResp %d\n", crnti);
+    log_debug("<- UEAdmResp enodeb:{} crnti:{}", context->enb_index, crnti);
 }
 
 void start_ues(context_t *context) {
 
     for (int i = 0; i < context->num_ues; i++) {
-	sleep(1);
         ue_admission_request(context, i + 1);
     }
 }

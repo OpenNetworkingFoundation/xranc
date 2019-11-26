@@ -64,6 +64,8 @@ static void *worker_function(void *ptr) {
 
         /* Execute the job. */
         job->job_function(job);
+
+        return NULL;
     }
 
     free(worker);

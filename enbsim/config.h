@@ -51,7 +51,6 @@ class Config {
     private:
         Config() {};
         Config(Config const&) {};
-        Config& operator=(Config const&) {};
         static Config* pInstance;
 };
 
