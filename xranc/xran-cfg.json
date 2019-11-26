@@ -19,14 +19,14 @@
     "l2_meas_report_interval_ms": 5000,
     "rx_signal_meas_report_interval_ms": 7000,
     "xranc_cellconfigrequest_interval_seconds": 5,
-    "xranc_bind_ip": "10.0.0.10",
+    "xranc_bind_ip": "127.0.0.1",
     "xranc_port": 5555,
     "admission_success": true,
     "bearer_success": true,
     "no_meas_link_removal_ms": 1000000,
     "idle_ue_removal_ms": 1,
     "nb_response_timeout_ms": 10000,
-    "redis_ip_addr": "10.0.0.11",
+    "redis_ip_addr": "127.0.0.1",
     "redis_port": 50002,
     "xranc_nbi_port": 50001
 }
