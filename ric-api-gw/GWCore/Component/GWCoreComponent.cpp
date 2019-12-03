@@ -42,12 +42,29 @@ GWCoreComponent::notifyEvent() {
 }
 
 void
-GWCoreComponent::registerBundle() {
-    std::cout << "GWCoreComponent - registerBundle" << std::endl;
+GWCoreComponent::registerBundle(std::string key, AbstractBundleComponent* bundleComponent) {
+    std::cout << "GWCoreComponent - registerBundle: " << key << std::endl;
+    addBundle(key, bundleComponent);
+    std::cout << "Registered bundle list: " << bundles.size() << " bundles" << std::endl;
+
+}
+
+void
+GWCoreComponent::unregisterBundle(std::string key) {
+    std::cout << "GWCoreComponent - unregisterBundle: " << key << std::endl;
+    std::cout << "Registered bundle list: " << bundles.size() << " bundles" << std::endl;
+    removeBundle(key);
+    std::cout << "Registered bundle list: " << bundles.size() << " bundles" << std::endl;
 }
 
 int
-GWCoreComponent::infoCmd(char* line, FILE *out, FILE* err) {
+GWCoreComponent::infoCmd(char* line, FILE* out, FILE* err) {
     fprintf(out, "GWCore is running");
+    std::cout << std::endl;
+    std::cout << "GWCore is running: " << line << std::endl;
+    std::cout << "Registered bundle list: " << bundles.size() << " bundles" << std::endl;
+    for (std::map<std::string, AbstractBundleComponent*>::iterator it = bundles.begin(); it != bundles.end(); it = ++it) {
+        std::cout << "* " << it->first << std::endl;
+    }
     return 0;
 }

@@ -26,12 +26,16 @@ DmActivator::create(DependencyManager& mng) {
 
 void
 GWCoreActivator::init() {
+
     auto component = std::unique_ptr<GWCoreComponent>(new GWCoreComponent());
 
     Properties cmdProps;
     cmdProps[OSGI_SHELL_COMMAND_NAME] = "gwcoreinfo";
     cmdProps[OSGI_SHELL_COMMAND_USAGE] = "gwcoreinfo";
     cmdProps[OSGI_SHELL_COMMAND_DESCRIPTION] = "Print information about the GWCoreComponent";
+
+    Properties props {};
+    props["name"] = GWCORE_NAME;
 
     cmd.handle = component.get();
     cmd.executeCommand = [](void *handle, char* line, FILE* out, FILE *err) {
@@ -40,10 +44,9 @@ GWCoreActivator::init() {
     };
 
     mng.createComponent(std::move(component))
-        .addInterface<AbstractGWCoreComponent>(GWCORE_VERSION)
+        .addInterface<AbstractGWCoreComponent>(GWCORE_VERSION, props)
         .addCInterface(&cmd, OSGI_SHELL_COMMAND_SERVICE_NAME, "", cmdProps)
         .setCallbacks(&GWCoreComponent::init, &GWCoreComponent::start, &GWCoreComponent::stop, &GWCoreComponent::deinit);
-
 }
 
 void

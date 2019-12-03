@@ -42,6 +42,7 @@ foreach(item IN ITEMS ${CELIX_INCLUDE_DIRS})
         include_directories(${item})
 endforeach()
 add_subdirectory(GWCore)
+add_subdirectory(Bundles/SBBundle)
 add_celix_container(ric-api-gw
     CXX
     BUNDLES
@@ -49,4 +50,5 @@ add_celix_container(ric-api-gw
             ${CELIX_BUNDLES_DIR}/shell_tui.zip
             ${CELIX_BUNDLES_DIR}/dm_shell.zip
             GWCore
+            SBBundle
 )

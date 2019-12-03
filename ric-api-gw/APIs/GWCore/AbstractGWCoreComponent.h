@@ -18,18 +18,45 @@
 #define _ABSTRACT_GWCORE_COMPONENT_H_
 
 #define GWCORE_VERSION "1.0.0"
+#define GWCORE_NAME "GWCore"
 
 #include <iostream>
+#include <map>
+#include <string>
+
+#include "../Bundles/AbstractBundleComponent.h"
 
 class AbstractGWCoreComponent {
     public:
         AbstractGWCoreComponent() = default;
         ~AbstractGWCoreComponent() = default;
         virtual void notifyEvent() = 0;
-        virtual void registerBundle() = 0;
+        virtual void registerBundle(std::string key, AbstractBundleComponent* bundleComponent) = 0;
+        virtual void unregisterBundle(std::string key) = 0;
+        std::map<std::string, AbstractBundleComponent*> getBundles() {
+            return this->bundles;
+        }
+
+        void setBundles(std::map<std::string, AbstractBundleComponent*> bundles) {
+            for (std::map<std::string, AbstractBundleComponent*>::iterator it = bundles.begin(); it != bundles.end(); it = ++it) {
+                addBundle(it->first, it->second);
+            }
+        }
+
+        void addBundle(std::string key, AbstractBundleComponent* bundleComponent) {
+            bundles.insert({key, bundleComponent});
+        }
+
+        AbstractBundleComponent* getBundle(std::string key) {
+            return bundles.at(key);
+        }
+
+        void removeBundle(std::string key) {
+            bundles.erase(key);
+        }
 
     protected:
-
+        std::map<std::string, AbstractBundleComponent*> bundles;
     private:
 
 };
