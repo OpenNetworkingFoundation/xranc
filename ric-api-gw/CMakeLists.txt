@@ -15,6 +15,8 @@
 cmake_minimum_required(VERSION 3.4)
 project(ric-api-gw CXX)
 
+SET(BUILD_REMOTE_SHELL "ON")
+
 SET(NBI_LIB_PATH "${CMAKE_SOURCE_DIR}/../xranc-nb-api-src/xranc_nbi.a")
 SET(HIREDIS_LIB_PATH "/usr/local/lib/libhiredis.a")
 SET(NBI_SOURCE_PATH "${CMAKE_SOURCE_DIR}/../xranc-nb-api-src")
@@ -49,6 +51,7 @@ add_celix_container(ric-api-gw
             ${CELIX_BUNDLES_DIR}/shell.zip
             ${CELIX_BUNDLES_DIR}/shell_tui.zip
             ${CELIX_BUNDLES_DIR}/dm_shell.zip
+            ${CELIX_BUNDLES_DIR}/remote_shell.zip # for telnet
             GWCore
             SBBundle
 )
