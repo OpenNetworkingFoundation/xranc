@@ -32,8 +32,6 @@ static size_t decode(XRANCPDU **pdu, uint8_t *buffer, size_t buf_size) {
         case RC_WMORE:
         case RC_FAIL:
         default:
-	    printf("ERROR****************\n");
-            //ASN_STRUCT_FREE(asn_DEF_XRANCPDU, pdu);
             return 0;
     }
 
@@ -49,13 +47,16 @@ void dispatch(uint8_t *buffer, size_t buf_size, client_t *client) {
     uint8_t *curr = buffer;
 
     do {
-        //log_debug("input: remaining={}, consumed={}", remaining, consumed);
         consumed = decode(&pdu, curr, remaining);
-	remaining -= consumed;
-	curr += consumed;
+        if (!consumed) {
+            log_error("Error decoding input: remaining={}, consumed={}", remaining, consumed);
+            break;
+        }
+        remaining -= consumed;
+        curr += consumed;
 
         trace_pdu(pdu);
-    
+
         switch (pdu->hdr.api_id) {
             case XRANC_API_ID_cellConfigReport:
                 cell_config_response(pdu, client);
@@ -84,6 +85,5 @@ void dispatch(uint8_t *buffer, size_t buf_size, client_t *client) {
 
         ASN_STRUCT_FREE(asn_DEF_XRANCPDU, pdu);
         pdu = 0;
-        
     } while (remaining);
 }

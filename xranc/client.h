@@ -54,6 +54,8 @@ typedef struct client {
 
     ecgi_t *ecgi;
 
+    int enb_index;
+
     uint16_t num_ue_admissions;
 } client_t;
 

@@ -20,6 +20,7 @@
 #include "context.h"
 #include "cell_config.h"
 #include "ue.h"
+#include "logger.h"
 
 using namespace std;
 
@@ -32,12 +33,18 @@ static size_t decode(XRANCPDU **pdu, uint8_t *buffer, size_t buf_size) {
         case RC_WMORE:
         case RC_FAIL:
         default:
-	    printf("ERROR****************\n");
-            //ASN_STRUCT_FREE(asn_DEF_XRANCPDU, pdu);
             return 0;
     }
 
     return rval.consumed;
+}
+
+static void ue_admission_timeout(int fd, short event, void *arg)
+{
+    context_t *context = (context_t *)arg;
+    log_info("starting ue admissions");
+    start_ues(context);
+    evtimer_del(context->ue_admission_timer);
 }
 
 void dispatch(uint8_t *buffer, size_t buf_size, context_t *context) {
@@ -52,13 +59,14 @@ void dispatch(uint8_t *buffer, size_t buf_size, context_t *context) {
     uint8_t *curr = buffer;
 
     do {
-        //cout << "*********************** remaining = " << remaining << " consumed = " << consumed << endl;
-
         consumed = decode(&pdu, curr, remaining);
-	remaining -= consumed;
-	curr += consumed;
+        if (!consumed) {
+            log_error("Error decoding input: remaining={}, consumed={}", remaining, consumed);
+        }
+        remaining -= consumed;
+        curr += consumed;
 
-        //xer_fprint(stdout, &asn_DEF_XRANCPDU, pdu);
+        trace_pdu(pdu);
 
         switch (pdu->hdr.api_id) {
             case XRANC_API_ID_cellConfigRequest:
@@ -72,7 +80,7 @@ void dispatch(uint8_t *buffer, size_t buf_size, context_t *context) {
         }
 
         ASN_STRUCT_FREE(asn_DEF_XRANCPDU, pdu);
-	pdu = 0;
+        pdu = 0;
 
         if (nbytes) {
             //struct evbuffer *tmp = evbuffer_new();
@@ -86,8 +94,13 @@ void dispatch(uint8_t *buffer, size_t buf_size, context_t *context) {
     } while (remaining);
 
     if (context->connected == false) {
+        struct timeval tv = {1, 0};
+
         //printf("starting ues\n");
+        log_info("starting ue admission timer");
         context->connected = true;
-        start_ues(context);
+
+        context->ue_admission_timer = event_new(context->evbase, -1, EV_PERSIST, ue_admission_timeout, context);
+        evtimer_add(context->ue_admission_timer, &tv);
     }
 }

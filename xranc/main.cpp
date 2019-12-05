@@ -24,6 +24,7 @@
 #include <server.h>
 
 // GLobal logging level
+//#define LOG_LEVEL spdlog::level::err
 #define LOG_LEVEL spdlog::level::debug
 
 int main(int argc, char *argv[]) {

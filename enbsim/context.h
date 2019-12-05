@@ -43,7 +43,6 @@ typedef struct context {
 
     /* Here you can add your own application-specific attributes which
      * are context-specific. */
-    struct event *cell_config_timer;
 
     /*  IP address of this context */
     char ip[INET_ADDRSTRLEN];
@@ -53,6 +52,7 @@ typedef struct context {
     int num_ues;
     int enb_index;
     bool connected;
+    struct event *ue_admission_timer;
 } context_t;
 
 void closecontext(context_t *context);
