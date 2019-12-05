@@ -25,10 +25,10 @@ void closecontext(context_t *context) {
             close(context->fd);
             context->fd = -1;
         }
-        if (context->cell_config_timer != NULL) {
-            evtimer_del(context->cell_config_timer);
-            event_free(context->cell_config_timer);
-            context->cell_config_timer = NULL;
+        if (context->ue_admission_timer != NULL) {
+            evtimer_del(context->ue_admission_timer);
+            event_free(context->ue_admission_timer);
+            context->ue_admission_timer = NULL;
         }
     }
 }
