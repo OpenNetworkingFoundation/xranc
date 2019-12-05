@@ -18,20 +18,28 @@
 #define _CELIX_GWCORE_ACTIVATOR_H_
 
 #include <iostream>
+#include <string>
+
 #include <celix/dm/DmActivator.h>
 #include <command.h>
 
+#include "../Component/GWCoreComponent.h"
+
 class GWCoreActivator : public DmActivator {
-    command_service_t cmd {nullptr, nullptr};
 
     public:
         GWCoreActivator(DependencyManager& mng) : DmActivator(mng) {}
         virtual void init();
         virtual void deinit();
+        
+        //for CLI
+        Properties setCmdGwCoreInfoProp(std::string name, std::string usage, std::string desc);
+        std::unique_ptr<GWCoreComponent> setCmdGwCoreInfoFunc(std::unique_ptr<GWCoreComponent> component);
 
     protected:
 
     private:
+        command_service_t cmdGwCoreInfo {nullptr, nullptr};
 };
 
 #endif /* _CELIX_GWCORE_ACTIVATOR_H_ */

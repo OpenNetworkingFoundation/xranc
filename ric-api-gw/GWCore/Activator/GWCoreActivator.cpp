@@ -15,7 +15,6 @@
  */
 
 #include "GWCoreActivator.h"
-#include "../Component/GWCoreComponent.h"
 
 using namespace celix::dm;
 
@@ -29,27 +28,38 @@ GWCoreActivator::init() {
 
     auto component = std::unique_ptr<GWCoreComponent>(new GWCoreComponent());
 
-    Properties cmdProps;
-    cmdProps[OSGI_SHELL_COMMAND_NAME] = "gwcoreinfo";
-    cmdProps[OSGI_SHELL_COMMAND_USAGE] = "gwcoreinfo";
-    cmdProps[OSGI_SHELL_COMMAND_DESCRIPTION] = "Print information about the GWCoreComponent";
-
     Properties props {};
     props["name"] = GWCORE_NAME;
-
-    cmd.handle = component.get();
-    cmd.executeCommand = [](void *handle, char* line, FILE* out, FILE *err) {
-        GWCoreComponent* component = (GWCoreComponent*)handle;
-        return component->infoCmd(line, out, err);
-    };
+    
+    Properties cmdProps = setCmdGwCoreInfoProp(GWCORE_CMD_INFO_NAME, GWCORE_CMD_INFO_NAME, "Print information about the GWCoreComponent");
+    component = setCmdGwCoreInfoFunc(std::move(component));
 
     mng.createComponent(std::move(component))
         .addInterface<AbstractGWCoreComponent>(GWCORE_VERSION, props)
-        .addCInterface(&cmd, OSGI_SHELL_COMMAND_SERVICE_NAME, "", cmdProps)
+        .addCInterface(&cmdGwCoreInfo, OSGI_SHELL_COMMAND_SERVICE_NAME, "", cmdProps)
         .setCallbacks(&GWCoreComponent::init, &GWCoreComponent::start, &GWCoreComponent::stop, &GWCoreComponent::deinit);
 }
 
 void
 GWCoreActivator::deinit() {
 
+}
+
+Properties
+GWCoreActivator::setCmdGwCoreInfoProp(std::string name, std::string usage, std::string desc) {
+    Properties cmdProps;
+    cmdProps[OSGI_SHELL_COMMAND_NAME] = name;
+    cmdProps[OSGI_SHELL_COMMAND_USAGE] = usage;
+    cmdProps[OSGI_SHELL_COMMAND_DESCRIPTION] = desc;
+    return cmdProps;
+}
+
+std::unique_ptr<GWCoreComponent>
+GWCoreActivator::setCmdGwCoreInfoFunc(std::unique_ptr<GWCoreComponent> component) {
+    cmdGwCoreInfo.handle = component.get();
+    cmdGwCoreInfo.executeCommand = [](void *handle, char* line, FILE* out, FILE *err) {
+        GWCoreComponent* component = (GWCoreComponent*)handle;
+        return component->infoCmd(line, out, err);
+    };
+    return std::move(component);
 }

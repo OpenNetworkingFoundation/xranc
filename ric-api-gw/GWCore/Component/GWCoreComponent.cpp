@@ -59,12 +59,10 @@ GWCoreComponent::unregisterBundle(std::string key) {
 
 int
 GWCoreComponent::infoCmd(char* line, FILE* out, FILE* err) {
-    fprintf(out, "GWCore is running");
-    std::cout << std::endl;
-    std::cout << "GWCore is running: " << line << std::endl;
-    std::cout << "Registered bundle list: " << bundles.size() << " bundles" << std::endl;
+    fprintf(out, "GWCore is running\n");
+    fprintf(out, "Registered bundle list (%d bundles)\n", (int)bundles.size() );
     for (std::map<std::string, AbstractBundleComponent*>::iterator it = bundles.begin(); it != bundles.end(); it = ++it) {
-        std::cout << "* " << it->first << std::endl;
+        fprintf(out, "** %s bundle\n", it->first.c_str());
     }
     return 0;
 }

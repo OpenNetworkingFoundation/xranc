@@ -28,26 +28,13 @@ void
 SBBundleActivator::init() {
 
     auto component = std::unique_ptr<SBBundleComponent>(new SBBundleComponent());
-    
-    Properties cmdProps;
-    cmdProps[OSGI_SHELL_COMMAND_NAME] = "sbbundleinfo";
-    cmdProps[OSGI_SHELL_COMMAND_USAGE] = "sbbundleinfo";
-    cmdProps[OSGI_SHELL_COMMAND_DESCRIPTION] = "Print information about the SBBundleComponent";
 
     Properties props {};
     props["name"] = SB_BUNDLE_KEY;
-        
-    cmd.handle = component.get();
-    cmd.executeCommand = [](void *handle, char* line, FILE* out, FILE *err) {
-        SBBundleComponent* component = (SBBundleComponent*)handle;
-        return component->infoCmd(line, out, err);
-    };
 
     Component<SBBundleComponent>& tmpComponent = mng.createComponent(std::move(component))
         .addInterface<SBBundleComponent>(SB_BUNDLE_VERSION, props)
-        .setCallbacks(&SBBundleComponent::init, &SBBundleComponent::start, &SBBundleComponent::stop, &SBBundleComponent::deinit)
-        .addCInterface(&cmd, OSGI_SHELL_COMMAND_SERVICE_NAME, "", cmdProps);
-
+        .setCallbacks(&SBBundleComponent::init, &SBBundleComponent::start, &SBBundleComponent::stop, &SBBundleComponent::deinit);
         
     tmpComponent.createServiceDependency<AbstractGWCoreComponent>()
         .setRequired(true)
