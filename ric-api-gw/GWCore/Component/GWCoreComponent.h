@@ -20,6 +20,10 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <sstream>
+
+#include <log_service.h>
+#include <log_helper.h>
 
 #include "../../APIs/GWCore/AbstractGWCoreComponent.h"
 #include "../../APIs/Bundles/AbstractBundleComponent.h"
@@ -44,6 +48,8 @@ class GWCoreComponent : public AbstractGWCoreComponent {
         void stop();
         void deinit();
 
+        void setLogService(const log_service_t* logSrv);
+
         int infoCmd(char* line, FILE* out, FILE* err);  //implements cmd service
 
         void notifyEvent() override;
@@ -53,6 +59,7 @@ class GWCoreComponent : public AbstractGWCoreComponent {
     protected:
 
     private:
+        const log_service_t* logSrv {nullptr};
 };
 
 #endif /* _CELIX_GWCORE_COMPONENT_H_ */

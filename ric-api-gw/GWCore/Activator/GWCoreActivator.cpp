@@ -34,16 +34,21 @@ GWCoreActivator::init() {
     Properties cmdProps = setCmdGwCoreInfoProp(GWCORE_CMD_INFO_NAME, GWCORE_CMD_INFO_NAME, "Print information about the GWCoreComponent");
     component = setCmdGwCoreInfoFunc(std::move(component));
 
-    mng.createComponent(std::move(component))
+    Component<GWCoreComponent>& tmpComponent = mng.createComponent(std::move(component))
         .addInterface<AbstractGWCoreComponent>(GWCORE_VERSION, props)
         .addCInterface(&cmdGwCoreInfo, OSGI_SHELL_COMMAND_SERVICE_NAME, "", cmdProps)
         .setCallbacks(&GWCoreComponent::init, &GWCoreComponent::start, &GWCoreComponent::stop, &GWCoreComponent::deinit);
+
+    tmpComponent.createCServiceDependency<log_service_t>(OSGI_LOGSERVICE_NAME)
+        .setRequired(true)
+        .setCallbacks(&GWCoreComponent::setLogService);
 }
 
 void
 GWCoreActivator::deinit() {
 
 }
+
 
 Properties
 GWCoreActivator::setCmdGwCoreInfoProp(std::string name, std::string usage, std::string desc) {

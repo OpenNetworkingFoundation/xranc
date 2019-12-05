@@ -38,23 +38,46 @@ GWCoreComponent::deinit() {
 
 void
 GWCoreComponent::notifyEvent() {
-    std::cout << "GWCoreComponent - notifyEvent" << std::endl;
+    this->logSrv->log(this->logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) "Notify Event");
 }
 
 void
-GWCoreComponent::registerBundle(std::string key, AbstractBundleComponent* bundleComponent) {
-    std::cout << "GWCoreComponent - registerBundle: " << key << std::endl;
-    addBundle(key, bundleComponent);
-    std::cout << "Registered bundle list: " << bundles.size() << " bundles" << std::endl;
+GWCoreComponent::setLogService(const log_service_t* logSrv) {
+    std::cout << "GWCoreComponent - setLogService" << std::endl;
+    this->logSrv = logSrv;
+}
 
+
+void
+GWCoreComponent::registerBundle(std::string key, AbstractBundleComponent* bundleComponent) {
+    std::cout << "GWCoreComponent - registerBundle" << std::endl;
+    std::stringstream logMsg;
+    logMsg << "Register " << key << " Bundle";
+    if (this->logSrv != nullptr) {
+        this->logSrv->log(this->logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) logMsg.str().c_str());
+    }
+    addBundle(key, bundleComponent);
+    logMsg.flush();
+    logMsg << "Finished to register " << key << " Bundle";
+    if (this->logSrv != nullptr) {
+        this->logSrv->log(this->logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) logMsg.str().c_str());
+    }
 }
 
 void
 GWCoreComponent::unregisterBundle(std::string key) {
-    std::cout << "GWCoreComponent - unregisterBundle: " << key << std::endl;
-    std::cout << "Registered bundle list: " << bundles.size() << " bundles" << std::endl;
+    std::cout << "GWCoreComponent - unregisterBundle" << std::endl;
+    std::stringstream logMsg;
+    logMsg << "Unregister " << key << " Bundle";
+    if (this->logSrv != nullptr) {
+        this->logSrv->log(this->logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) logMsg.str().c_str());
+    }
     removeBundle(key);
-    std::cout << "Registered bundle list: " << bundles.size() << " bundles" << std::endl;
+    logMsg.flush();
+    logMsg << "Finished to unregister " << key << " Bundle";
+    if (this->logSrv != nullptr) {
+        this->logSrv->log(this->logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) logMsg.str().c_str());
+    }
 }
 
 int

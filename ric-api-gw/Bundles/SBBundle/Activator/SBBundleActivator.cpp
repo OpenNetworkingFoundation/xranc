@@ -42,7 +42,7 @@ SBBundleActivator::init() {
         .setCallbacks(&SBBundleComponent::setGWCoreComponent);
 
     tmpComponent.createCServiceDependency<log_service_t>(OSGI_LOGSERVICE_NAME)
-        .setRequired(false)
+        .setRequired(true)
         .setCallbacks(&SBBundleComponent::setLogService);
 
 }

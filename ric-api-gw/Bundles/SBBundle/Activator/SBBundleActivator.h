@@ -25,7 +25,6 @@
 #define SB_BUNDLE_KEY "SBBundle"
 
 class SBBundleActivator : public DmActivator {
-    command_service_t cmd {nullptr, nullptr};
 
     public:
         SBBundleActivator(DependencyManager& mng) : DmActivator(mng) {}
