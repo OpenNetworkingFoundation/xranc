@@ -20,6 +20,11 @@
 #include <iostream>
 #include <string>
 
+extern "C" {
+#include <log_service.h>
+#include <log_helper.h>
+};
+
 #include "../../../APIs/Bundles/AbstractBundleComponent.h"
 #include "../../../APIs/GWCore/AbstractGWCoreComponent.h"
 #include "../Activator/SBBundleActivator.h"
@@ -31,6 +36,7 @@ class SBBundleComponent : public AbstractBundleComponent {
         ~SBBundleComponent() = default;
 
         void setGWCoreComponent(AbstractGWCoreComponent* gwcore);
+        void setLogService(const log_service_t* logSrv);
         int infoCmd(char* line, FILE* out, FILE* err);  //implements cmd service
         void notifyEvent() override;
         void registerBundle();
@@ -45,6 +51,7 @@ class SBBundleComponent : public AbstractBundleComponent {
 
     private:
         AbstractGWCoreComponent* gwCoreComponent {nullptr};
+        const log_service_t* logSrv {nullptr};
 };
 
 

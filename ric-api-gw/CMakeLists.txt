@@ -16,6 +16,8 @@ cmake_minimum_required(VERSION 3.4)
 project(ric-api-gw CXX)
 
 SET(BUILD_REMOTE_SHELL "ON")
+SET(BUILD_LOG_SERVICE "ON")
+SET(LOGHELPER_ENABLE_STDOUT_FALLBACK "true")
 
 SET(NBI_LIB_PATH "${CMAKE_SOURCE_DIR}/../xranc-nb-api-src/xranc_nbi.a")
 SET(HIREDIS_LIB_PATH "/usr/local/lib/libhiredis.a")
@@ -39,19 +41,25 @@ find_package(Protobuf REQUIRED)
 find_package(CELIX REQUIRED)
 
 set(CELIX_INCLUDE_DIRS ${CELIX_INCLUDE_DIRS} "/usr/local/include/celix/shell")
+set(CELIX_INCLUDE_DIRS ${CELIX_INCLUDE_DIRS} "/usr/local/include/celix/log_service")
 message(STATUS ${CELIX_INCLUDE_DIRS})
 foreach(item IN ITEMS ${CELIX_INCLUDE_DIRS})
+        message(STATUS "Added dir: " ${item})
         include_directories(${item})
 endforeach()
 add_subdirectory(GWCore)
 add_subdirectory(Bundles/SBBundle)
 add_celix_container(ric-api-gw
-    CXX
-    BUNDLES
-            ${CELIX_BUNDLES_DIR}/shell.zip
-            ${CELIX_BUNDLES_DIR}/shell_tui.zip
-            ${CELIX_BUNDLES_DIR}/dm_shell.zip
-            ${CELIX_BUNDLES_DIR}/remote_shell.zip # for telnet
-            GWCore
-            SBBundle
+        CXX
+        BUNDLES
+                ${CELIX_BUNDLES_DIR}/shell.zip
+                ${CELIX_BUNDLES_DIR}/shell_tui.zip
+                ${CELIX_BUNDLES_DIR}/dm_shell.zip
+                ${CELIX_BUNDLES_DIR}/remote_shell.zip # for telnet
+                ${CELIX_BUNDLES_DIR}/log_service.zip # for logging
+                GWCore
+                SBBundle
+        PROPERTIES
+            LOGHELPER_ENABLE_STDOUT_FALLBACK=true
+            BUILD_REMOTE_SHELL=ON
 )

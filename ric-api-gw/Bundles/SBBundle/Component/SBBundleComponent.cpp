@@ -22,11 +22,18 @@ SBBundleComponent::setGWCoreComponent(AbstractGWCoreComponent* gwcore) {
     this->gwCoreComponent = gwcore;
 }
 
+void 
+SBBundleComponent::setLogService(const log_service_t* logSrv) {
+    std::cout << "SBBundleComponent - setLogService" << std::endl;
+    this->logSrv = logSrv;
+}
+
 int
 SBBundleComponent::infoCmd(char* line, FILE *out, FILE* err) {
     fprintf(out, "SBBundle is running");
     std::cout << std::endl;
     std::cout << "SBBundle is running: " << line << std::endl;
+    this->logSrv->log(this->logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) "LOG:SBBundle is running: \n");
     return 0;
 }
 
@@ -58,6 +65,7 @@ SBBundleComponent::unregisterBundle() {
 void
 SBBundleComponent::init() {
     std::cout << "SBBundleComponent - init" << std::endl;
+    this->logSrv->log(this->logSrv->logger, OSGI_LOGSERVICE_DEBUG, (char *) "SBBundleComponent - init");
 }
 
 void
