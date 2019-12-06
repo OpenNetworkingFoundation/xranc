@@ -21,6 +21,8 @@
 #include <celix/dm/DmActivator.h>
 #include <command.h>
 
+#include "../Component/SBBundleComponent.h"
+
 #define SB_BUNDLE_VERSION "1.0.0"
 #define SB_BUNDLE_KEY "SBBundle"
 

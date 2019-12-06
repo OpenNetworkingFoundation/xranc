@@ -15,7 +15,6 @@
  */
 
 #include "SBBundleActivator.h"
-#include "../Component/SBBundleComponent.h"
 
 using namespace celix::dm;
 

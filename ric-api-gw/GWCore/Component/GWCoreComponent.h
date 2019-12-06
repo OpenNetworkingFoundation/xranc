@@ -27,6 +27,7 @@
 
 #include "../../APIs/GWCore/AbstractGWCoreComponent.h"
 #include "../../APIs/Bundles/AbstractBundleComponent.h"
+#include "../../APIs/Common/APIGwLogServiceWrapper.h"
 
 #define GWCORE_CMD_INFO_NAME "gwcore_info"
 

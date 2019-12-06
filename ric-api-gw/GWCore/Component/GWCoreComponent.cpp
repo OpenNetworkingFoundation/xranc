@@ -54,13 +54,13 @@ GWCoreComponent::registerBundle(std::string key, AbstractBundleComponent* bundle
     std::stringstream logMsg;
     logMsg << "Register " << key << " Bundle";
     if (this->logSrv != nullptr) {
-        this->logSrv->log(this->logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) logMsg.str().c_str());
+        APIGWLogINFO(this->logSrv, logMsg.str().c_str());
     }
     addBundle(key, bundleComponent);
     logMsg.flush();
     logMsg << "Finished to register " << key << " Bundle";
     if (this->logSrv != nullptr) {
-        this->logSrv->log(this->logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) logMsg.str().c_str());
+        APIGWLogINFO(this->logSrv, logMsg.str().c_str());
     }
 }
 
@@ -70,13 +70,13 @@ GWCoreComponent::unregisterBundle(std::string key) {
     std::stringstream logMsg;
     logMsg << "Unregister " << key << " Bundle";
     if (this->logSrv != nullptr) {
-        this->logSrv->log(this->logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) logMsg.str().c_str());
+        APIGWLogINFO(this->logSrv, logMsg.str().c_str());
     }
     removeBundle(key);
     logMsg.flush();
     logMsg << "Finished to unregister " << key << " Bundle";
     if (this->logSrv != nullptr) {
-        this->logSrv->log(this->logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) logMsg.str().c_str());
+        APIGWLogINFO(this->logSrv, logMsg.str().c_str());
     }
 }
 

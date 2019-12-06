@@ -25,7 +25,6 @@ SBBundleComponent::setGWCoreComponent(AbstractGWCoreComponent* gwcore) {
 void 
 SBBundleComponent::setLogService(const log_service_t* logSrv) {
     //for logging
-    //this->logSrv->log(this->logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) "LOG:SBBundle is running:");
     std::cout << "SBBundleComponent - setLogService" << std::endl;
     this->logSrv = logSrv;
 }
@@ -33,7 +32,7 @@ SBBundleComponent::setLogService(const log_service_t* logSrv) {
 void
 SBBundleComponent::notifyEvent() {
     std::cout << "SBBundleComponent - notifyEvent" << std::endl;
-    this->logSrv->log(this->logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) "Notify Event");
+    APIGWLogINFO(this->logSrv, "SBBundleComponent - notifyEvent");
 }
 
 void
@@ -42,18 +41,18 @@ SBBundleComponent::registerBundle() {
     std::stringstream logMsg;
     logMsg << "Register " << SB_BUNDLE_KEY << " Bundle";
     if (this->logSrv != nullptr) {
-        this->logSrv->log(this->logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) logMsg.str().c_str());
+        APIGWLogINFO(this->logSrv, logMsg.str().c_str());
     }
     if (gwCoreComponent) {
         gwCoreComponent->registerBundle(SB_BUNDLE_KEY, this);
         logMsg.flush();
         logMsg << "Finished to register " << SB_BUNDLE_KEY << " Bundle";
         if (this->logSrv != nullptr) {
-            this->logSrv->log(this->logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) logMsg.str().c_str());
+            APIGWLogINFO(this->logSrv, logMsg.str().c_str());
         }
     } else {
         if (this->logSrv != nullptr) {
-            this->logSrv->log(this->logSrv->logger, OSGI_LOGSERVICE_ERROR, (char *) "GWCore is not ready; cannot register this bundle on GWCore");
+            APIGWLogERROR(this->logSrv, logMsg.str().c_str());
         }
     }
 }
@@ -64,18 +63,18 @@ SBBundleComponent::unregisterBundle() {
     std::stringstream logMsg;
     logMsg << "Unregister " << SB_BUNDLE_KEY << " Bundle";
     if (this->logSrv != nullptr) {
-        this->logSrv->log(this->logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) logMsg.str().c_str());
+        APIGWLogINFO(this->logSrv, logMsg.str().c_str());
     }
     if (gwCoreComponent) {
         gwCoreComponent->unregisterBundle(SB_BUNDLE_KEY);
         logMsg.flush();
         logMsg << "Finished to register " << SB_BUNDLE_KEY << " Bundle";
         if (this->logSrv != nullptr) {
-            this->logSrv->log(this->logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) logMsg.str().c_str());
+            APIGWLogINFO(this->logSrv, logMsg.str().c_str());
         }
     } else {
         if (this->logSrv != nullptr) {
-            this->logSrv->log(this->logSrv->logger, OSGI_LOGSERVICE_ERROR, (char *) "GWCore is not ready; nothing to unregister");
+            APIGWLogERROR(this->logSrv, logMsg.str().c_str());
         }
     }
 }

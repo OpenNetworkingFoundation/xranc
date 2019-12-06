@@ -21,12 +21,13 @@
 #include "../gRPCParams/gRPCParam-CellConfigReportMsg.h"
 #include "../gRPCPB/gRPC-CellConfigReport.grpc.pb.h"
 
-class gRPCServerCellConfigReport : public gRPCServer {
+
+class gRPCServerCellConfigReport : public gRPCServer, public gRPCCellConfigReportUpdater::Service {
 
     public:
         gRPCServerCellConfigReport();
         ~gRPCServerCellConfigReport();
-        virtual void Run() = 0;
+        virtual grpc::Status UpdateCellConfig(grpc::ServerContext* context, const gMsgCellConfigValues* request, gMsgResults* reply) = 0;
         
     private:
 

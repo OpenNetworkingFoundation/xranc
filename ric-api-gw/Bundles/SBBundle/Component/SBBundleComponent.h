@@ -27,6 +27,7 @@
 #include "../../../APIs/Bundles/AbstractBundleComponent.h"
 #include "../../../APIs/GWCore/AbstractGWCoreComponent.h"
 #include "../Activator/SBBundleActivator.h"
+#include "../../../APIs/Common/APIGwLogServiceWrapper.h"
 
 class SBBundleComponent : public AbstractBundleComponent {
 
