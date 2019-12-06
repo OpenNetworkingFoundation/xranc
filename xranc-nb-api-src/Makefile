@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-CXX = g++
+CXX = g++ -fPIC
 AR = ar
 RCS = rcs
 CXFLAGS = -Wall -Wextra -g -std=c++11 -I.

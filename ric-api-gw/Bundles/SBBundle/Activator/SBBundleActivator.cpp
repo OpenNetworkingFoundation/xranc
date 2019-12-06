@@ -48,5 +48,5 @@ SBBundleActivator::init() {
 
 void
 SBBundleActivator::deinit() {
-
+    
 }

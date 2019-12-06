@@ -18,4 +18,9 @@
 
 gRPCServerCellConfigReport::gRPCServerCellConfigReport() {}
 
-gRPCServerCellConfigReport::~gRPCServerCellConfigReport() {}
+gRPCServerCellConfigReport::~gRPCServerCellConfigReport() {
+    server->Shutdown();
+    cq->Shutdown();
+}
+
+gRPCServerCellConfigReport::AbstractCallData::AbstractCallData(gRPCCellConfigReport::gRPCCellConfigReportUpdater::AsyncService* service, grpc::ServerCompletionQueue* cq) : service_(service), cq_(cq), responder_(&ctx_) {}

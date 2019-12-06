@@ -17,6 +17,7 @@ project(ric-api-gw CXX)
 
 SET(BUILD_REMOTE_SHELL "ON")
 SET(BUILD_LOG_SERVICE "ON")
+SET(BUILD_SHARED_LIBS "ON")
 SET(LOGHELPER_ENABLE_STDOUT_FALLBACK "true")
 
 SET(NBI_LIB_PATH "${CMAKE_SOURCE_DIR}/../xranc-nb-api-src/xranc_nbi.a")
@@ -27,15 +28,23 @@ SET(NBI_FLAGS "-I${NBI_SOURCE_PATH} ${NBI_LIB_PATH}")
 SET(HIREDIS_FLAGS "-I${HIREDIS_SOURCE_PATH} ${HIREDIS_LIB_PATH}")
 SET(COMMON_FLAGS_FOR_GW "-I${CMAKE_SOURCE_DIR}../common/include")
 
-SET(CMAKE_C_FLAGS "-D_GNU_SOURCE -std=gnu99 -Wall -Wextra -Werror -fPIC ${CMAKE_C_FLAGS}")
+# SET(CMAKE_BUILD_TYPE "Debug") # debugging option
+
+SET(CMAKE_C_FLAGS "-D_GNU_SOURCE -std=gnu99 -Wall -Wextra -Werror ${CMAKE_C_FLAGS}")
 SET(CMAKE_C_FLAGS_DEBUG "-g -DDEBUG")
-SET(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter -g -std=c++11 -L/usr/local/lib ${COMMON_FLAGS_FOR_GWs} ${NBI_FLAGS} ${HIREDIS_FLAGS} ${CMAKE_CXX_FLAGS}")
+SET(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter -fPIC -g -std=c++11 -I${NBI_SOURCE_PATH} -I${HIREDIS_SOURCE_PATH} -L/usr/local/lib")
 SET(CMAKE_CXX_FLAGS_DEBUG "-g -DDEBUG")
 SET(CMAKE_MODULE_PATH  ${CMAKE_MODULE_PATH} "/usr/local/share/celix/cmake/modules")
+
+EXEC_PROGRAM("pkg-config --libs protobuf grpc++" OUTPUT_VARIABLE GRPC_FLAGS)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GRPC_FLAGS} -pthread -lm -levent -ljsoncpp -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed -ldl -lgrpc -L${NBI_LIB_PATH} -L${HIREDIS_LIB_PATH}")
+
+message(STATUS ${CMAKE_CXX_FLAGS})
 
 find_library(PROTOBUF libprotobuf.a protobuf)
 find_library(GRPC libgrpc.a grpc)
 find_library(GRPC++ libgrpc++.a grpc++)
+find_library(PTHREAD pthread)
 find_library(GRPC_UNSECURE libgrpc_unsecure.a grpc_unsecure)
 find_package(Protobuf REQUIRED)
 find_package(CELIX REQUIRED)
@@ -62,4 +71,5 @@ add_celix_container(ric-api-gw
         PROPERTIES
             LOGHELPER_ENABLE_STDOUT_FALLBACK=true
             BUILD_REMOTE_SHELL=ON
+            BUILD_SHARED_LIBS=ON
 )

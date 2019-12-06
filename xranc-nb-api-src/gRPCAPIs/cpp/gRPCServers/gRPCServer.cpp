@@ -19,3 +19,23 @@
 gRPCServer::gRPCServer() {}
 
 gRPCServer::~gRPCServer() {}
+
+std::string 
+gRPCServer::getServerIP() {
+    return serverIP;
+}
+
+void 
+gRPCServer::setServerIP(std::string serverIP) {
+    this->serverIP = serverIP;
+}
+
+std::string 
+gRPCServer::getServerPort() {
+    return serverPort;
+}
+
+void 
+gRPCServer::setServerPort(std::string serverPort) {
+    this->serverPort = serverPort;
+}

@@ -80,6 +80,24 @@ SBBundleComponent::unregisterBundle() {
 }
 
 void
+SBBundleComponent::runGRPCServer() {
+    
+    //To-Do: remove this hard coded part and get this information from GWCore
+    service = new gRPCServerImplCellConfigReport();
+    service->setServerIP(GRPC_SB_IP);
+    service->setServerPort(GRPC_SB_PORT);
+    ((gRPCServerImplCellConfigReport*) service)->setLogService(logSrv);
+    th1 = std::thread ([this] {service->run();});
+    //service->run();
+}
+
+void
+SBBundleComponent::killGRPCServer() {
+    service->shutdownGRPCServer();
+    th1.detach();
+}
+
+void
 SBBundleComponent::init() {
     std::cout << "SBBundleComponent - init" << std::endl;
 }
@@ -88,11 +106,13 @@ void
 SBBundleComponent::start() {
     std::cout << "SBBundleComponent - start" << std::endl;
     this->registerBundle();
+    runGRPCServer();
 }
 
 void
 SBBundleComponent::stop() {
     std::cout << "SBBundleComponent - stop" << std::endl;
+    killGRPCServer();
     this->unregisterBundle();
 }
 

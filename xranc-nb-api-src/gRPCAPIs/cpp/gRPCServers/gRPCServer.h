@@ -31,10 +31,20 @@ class gRPCServer {
     public:
         gRPCServer();
         ~gRPCServer();
+        std::string getServerIP();
+        void setServerIP(std::string serverIP);
+        std::string getServerPort();
+        void setServerPort(std::string serverPort);
+        
+        virtual void run() = 0;
+        virtual void handleRPCs() = 0;
+        
 
     private:
 
     protected:
+        std::string serverIP;
+        std::string serverPort;
     
 };
 

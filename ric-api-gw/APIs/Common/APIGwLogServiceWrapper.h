@@ -37,4 +37,20 @@ inline void APIGWLogERROR(const log_service_t* logSrv, std::string msg ) {
     }
 }
 
+inline void APIGWLogDEBUG(const log_service_t* logSrv, std::string msg ) {
+    if (logSrv) {
+        logSrv->log(logSrv->logger, OSGI_LOGSERVICE_DEBUG, (char *) msg.c_str());
+    } else {
+        std::cout << "[LOGSERVICE IS NOT SET - INFO]: " << msg << std::endl;
+    }
+}
+
+inline void APIGWLogWARN(const log_service_t* logSrv, std::string msg ) {
+    if (logSrv) {
+        logSrv->log(logSrv->logger, OSGI_LOGSERVICE_WARNING, (char *) msg.c_str());
+    } else {
+        std::cout << "[LOGSERVICE IS NOT SET - INFO]: " << msg << std::endl;
+    }
+}
+
 #endif /* _APIGW_LOG_SERVICE_WRAPPER_H_ */

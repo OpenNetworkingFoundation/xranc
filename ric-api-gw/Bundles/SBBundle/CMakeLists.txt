@@ -12,17 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+find_library(PROTOBUF libprotobuf.a protobuf)
+find_library(GRPC libgrpc.a grpc)
+find_library(GRPC++ libgrpc++.a grpc++)
+SET(NBI_LIB_PATH "${CMAKE_SOURCE_DIR}/../xranc-nb-api-src/xranc_nbi.a")
+
 add_celix_bundle(SBBundle
         VERSION 1.0.0
         SOURCES
         ./Activator/SBBundleActivator.cpp
         ./Component/SBBundleComponent.cpp
+        ./gRPCHandler/gRPCServerImpls/gRPCServerImpl-CellConfigReport.cpp
 )
 
 include_directories(
         ../APIs
         ./Activator
         ./Component
+        ./gRPCHandler/gRPCServerImpls
 )
 
-target_link_libraries(SBBundle -Wl,--no-undefined -Wl,--whole-archive ${CELIX_DM_STATIC_CXX_LIB} -Wl,--no-whole-archive ${CELIX_LIBRARIES} )
+target_link_libraries(SBBundle -Wl,--no-undefined -Wl,--whole-archive ${CELIX_DM_STATIC_CXX_LIB} -Wl,--no-whole-archive ${CELIX_LIBRARIES} -lprotobuf -pthread -lgrpc++ -lgpr -lgrpc ${NBI_LIB_PATH})
+
+message (STATUS ${PROTOBUF} ${GRPC++} ${GRPC} ${GRPC_UNSECURE} ${NBI_LIB_PATH})
+message(STATUS ${CMAKE_CXX_FLAGS})

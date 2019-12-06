@@ -36,8 +36,6 @@
 #define REDIS_TIMEOUT_SEC 1
 #define REDIS_TIMOUET_USEC 500000
 
-#define GRPC_SB_IP "127.0.0.1"
-#define GRPC_SB_PORT "50002"
 
 class GWCoreComponent : public AbstractGWCoreComponent {
     public:

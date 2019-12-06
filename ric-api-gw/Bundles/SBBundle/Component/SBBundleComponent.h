@@ -20,14 +20,21 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <thread>
 
 #include <log_service.h>
 #include <log_helper.h>
+#include <grpcpp/grpcpp.h>
+#include <grpc/support/log.h>
 
 #include "../../../APIs/Bundles/AbstractBundleComponent.h"
 #include "../../../APIs/GWCore/AbstractGWCoreComponent.h"
 #include "../Activator/SBBundleActivator.h"
 #include "../../../APIs/Common/APIGwLogServiceWrapper.h"
+#include "../gRPCHandler/gRPCServerImpls/gRPCServerImpl-CellConfigReport.h"
+
+#define GRPC_SB_IP "127.0.0.1"
+#define GRPC_SB_PORT "50002"
 
 class SBBundleComponent : public AbstractBundleComponent {
 
@@ -45,11 +52,17 @@ class SBBundleComponent : public AbstractBundleComponent {
         void start();
         void stop();
         void deinit();
+
+        // for running gRPC
+        void runGRPCServer();
+        void killGRPCServer();
         
     protected:
 
     private:
         AbstractGWCoreComponent* gwCoreComponent {nullptr};
+        gRPCServerCellConfigReport* service {nullptr};
+        std::thread th1;
         const log_service_t* logSrv {nullptr};
 };
 

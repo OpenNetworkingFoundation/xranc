@@ -22,17 +22,37 @@
 #include "../gRPCPB/gRPC-CellConfigReport.grpc.pb.h"
 
 
-class gRPCServerCellConfigReport : public gRPCServer, public gRPCCellConfigReportUpdater::Service {
+class gRPCServerCellConfigReport : public gRPCServer {
 
     public:
         gRPCServerCellConfigReport();
         ~gRPCServerCellConfigReport();
-        virtual grpc::Status UpdateCellConfig(grpc::ServerContext* context, const gMsgCellConfigValues* request, gMsgResults* reply) = 0;
+
+        virtual void run() = 0;
+        virtual void handleRPCs() = 0;
+
+        virtual void shutdownGRPCServer() = 0;
         
     private:
 
     protected:
+        class AbstractCallData {
+            public:
+                AbstractCallData(gRPCCellConfigReport::gRPCCellConfigReportUpdater::AsyncService* service, grpc::ServerCompletionQueue* cq);
+                virtual void proceed() = 0;
 
+            protected:
+                gRPCCellConfigReport::gRPCCellConfigReportUpdater::AsyncService* service_;
+                grpc::ServerCompletionQueue* cq_;
+                grpc::ServerContext ctx_;
+                gRPCCellConfigReport::gMsgCellConfigValues request_;
+                gRPCCellConfigReport::gMsgResults reply_;
+                grpc::ServerAsyncResponseWriter<gRPCCellConfigReport::gMsgResults> responder_;
+        };
+
+        std::unique_ptr<grpc::ServerCompletionQueue> cq;
+        gRPCCellConfigReport::gRPCCellConfigReportUpdater::AsyncService service;
+        std::unique_ptr<grpc::Server> server;
 };
 
 #endif /* _GRPCSERVER_CELLCONFIGREPORT_H_ */
