@@ -97,8 +97,6 @@ void cell_config_request(client_t *client) {
 
 void cell_config_response(XRANCPDU *pdu, client_t *client) {
 
-    log_debug("<- CCResp enodeb:{}", client->enb_index);
-
     // TODO - Update information on Redis DB through NBI - gRPC
     Config* config = Config::Instance();
     std::string redisServerInfo = config->redis_ip_addr + ":" + std::to_string(config->redis_port);
@@ -149,6 +147,8 @@ void cell_config_response(XRANCPDU *pdu, client_t *client) {
         client->enb_index = body.ecgi.eUTRANcellIdentifier.buf[2];
         log_info("connected to enodeb:{}", client->enb_index);
     }
+
+    log_debug("<- CCResp enodeb:{}", client->enb_index);
 
     gRPCClientImplCellConfigReport reportService(grpc::CreateChannel(redisServerInfo, grpc::InsecureChannelCredentials()));
     int resultCode = reportService.UpdateCellConfig(cellConfigReport);

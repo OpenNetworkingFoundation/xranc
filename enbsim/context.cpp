@@ -18,8 +18,9 @@
 #include "context.h"
 #include "config.h"
 #include "cell_config.h"
+#include "logger.h"
 
-void closecontext(context_t *context) {
+void ctx_close(context_t *context) {
     if (context != NULL) {
         if (context->fd >= 0) {
             close(context->fd);
@@ -31,4 +32,18 @@ void closecontext(context_t *context) {
             context->ue_admission_timer = NULL;
         }
     }
+}
+
+void ctx_send(XRANCPDU *pdu, context_t *context) {
+    asn_encode_to_new_buffer_result_t res = { NULL, {0, NULL, NULL} };
+
+    trace_pdu(pdu);
+
+    res = asn_encode_to_new_buffer(0, ATS_BER, &asn_DEF_XRANCPDU, pdu);
+
+    if (bufferevent_write(context->buf_ev, res.buffer, res.result.encoded)) {
+        log_error("Error sending data to client on fd {}", context->fd);
+        ctx_close(context);
+    }
+    free(res.buffer);
 }

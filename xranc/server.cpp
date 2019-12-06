@@ -46,6 +46,7 @@
 #include "workqueue.h"
 #include "cell_config.h"
 #include "dispatch.h"
+#include "logger.h"
 
 #define USE_SCTP
 #ifdef USE_SCTP
@@ -100,38 +101,26 @@ static void closeAndFreeClient(client_t *client) {
  */
 void buffered_on_read(struct bufferevent *bev, void *arg) {
     client_t *client = (client_t *)arg;
-    char data[4096];
-    int nbytes;
-    int tbytes = 0;
-
-    /* If we have input data, the number of bytes we have is contained in
-     * bev->input->off. Copy the data from the input buffer to the output
-     * buffer in 4096-byte chunks. There is a one-liner to do the whole thing
-     * in one shot, but the purpose of this server is to show actual real-world
-     * reading and writing of the input and output buffers, so we won't take
-     * that shortcut here. */
     struct evbuffer *input;
+
     input = bufferevent_get_input(bev);
-    while (evbuffer_get_length(input) > 0) {
-        /* Remove a chunk of data from the input buffer, copying it into our
-         * local array (data). */
-        nbytes = evbuffer_remove(input, data, 4096); 
-        /* Add the chunk of data from our local array (data) to the client's
-         * output buffer. */
-        //evbuffer_add(client->output_buffer, data, nbytes);
-        tbytes += nbytes;
+
+    while (evbuffer_get_length(input)) {
+        int n = evbuffer_remove(input, client->data + client->nbytes, sizeof(client->data) - client->nbytes);
+        //log_debug("removed {} bytes", n);
+        client->nbytes += n;
     }
 
-    dispatch((uint8_t *)data, tbytes, client);
+    //log_debug("disptaching {} bytes", client->nbytes);
 
-    /* Send the results to the client.  This actually only queues the results
-     * for sending. Sending will occur asynchronously, handled by libevent. */
-    /*
-    if (bufferevent_write_buffer(bev, client->output_buffer)) {
-        errorOut("Error sending data to client on fd %d\n", client->fd);
-        closeClient(client);
+    int r = dispatch((uint8_t *)(client->data), client->nbytes, client);
+
+    if (r) {
+        memmove(client->data, client->data + client->nbytes - r, r);
+        client->nbytes = r;
+    } else {
+        client->nbytes = 0;
     }
-    */
 }
 
 /**
@@ -210,29 +199,6 @@ void on_accept(evutil_socket_t fd, short ev, void *arg) {
         return;
     }
 
-    /* Create the buffered event.
-     *
-     * The first argument is the file descriptor that will trigger
-     * the events, in this case the clients socket.
-     *
-     * The second argument is the callback that will be called
-     * when data has been read from the socket and is available to
-     * the application.
-     *
-     * The third argument is a callback to a function that will be
-     * called when the write buffer has reached a low watermark.
-     * That usually means that when the write buffer is 0 length,
-     * this callback will be called.  It must be defined, but you
-     * don't actually have to do anything in this callback.
-     *
-     * The fourth argument is a callback that will be called when
-     * there is a socket error.  This is where you will detect
-     * that the client disconnected or other socket errors.
-     *
-     * The fifth and final argument is to store an argument in
-     * that will be passed to the callbacks.  We store the client
-     * object here.
-     */
     /* Shad - try BEV_OPT_DEFER_CALLBACKS */
     client->buf_ev = bufferevent_socket_new(client->evbase, client_fd,
                                             BEV_OPT_CLOSE_ON_FREE);
@@ -241,6 +207,8 @@ void on_accept(evutil_socket_t fd, short ev, void *arg) {
         closeAndFreeClient(client);
         return;
     }
+    //bufferevent_set_max_single_write(client->buf_ev, 8192);
+    //bufferevent_set_max_single_read(client->buf_ev, 8192);
     bufferevent_setcb(client->buf_ev, buffered_on_read, buffered_on_write,
                       buffered_on_error, client);
 

@@ -57,6 +57,8 @@ typedef struct client {
     int enb_index;
 
     uint16_t num_ue_admissions;
+    char data[8192];
+    int nbytes;
 } client_t;
 
 void closeClient(client_t *client);

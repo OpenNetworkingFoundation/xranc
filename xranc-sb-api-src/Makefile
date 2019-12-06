@@ -8,7 +8,7 @@ ASN_LIBRARY ?= libasncodec.a
 
 #all: $(ASN_PROGRAM)
 
-all: $(ASN_LIBRARY) 
+all: $(ASN_LIBRARY)
 
 #$(ASN_PROGRAM): $(ASN_LIBRARY) $(ASN_PROGRAM_SRCS:.c=.o)
 #	$(CC) $(CFLAGS) $(CPPFLAGS) -o $(ASN_PROGRAM) $(ASN_PROGRAM_SRCS:.c=.o) $(LDFLAGS) $(ASN_LIBRARY) $(LIBS)

@@ -18,6 +18,7 @@
 #include "context.h"
 #include "dispatch.h"
 #include "config.h"
+#include "logger.h"
 
 int64_t total_bytes_read = 0;
 int64_t total_messages_read = 0;
@@ -62,23 +63,26 @@ static int create_bind_socket(int enb_id) {
 static void readcb(struct bufferevent *bev, void *arg)
 {
     context_t *ctx = (context_t *)arg;
-    char data[4096];
-    int nbytes;
-    int tbytes = 0;
+    struct evbuffer *input;
 
-    /* This callback is invoked when there is data to read on bev. */
-    struct evbuffer *input = bufferevent_get_input(bev);
-    while (evbuffer_get_length(input) > 0) {
-        /* Remove a chunk of data from the input buffer, copying it into our
-         * local array (data). */
-        nbytes = evbuffer_remove(input, data, 4096);
-        /* Add the chunk of data from our local array (data) to the client's
-         * output buffer. */
-        //evbuffer_add(client->output_buffer, data, nbytes);
-        tbytes += nbytes;
+    input = bufferevent_get_input(bev);
+
+    while (evbuffer_get_length(input)) {
+        int n = evbuffer_remove(input, ctx->data + ctx->nbytes, sizeof(ctx->data) - ctx->nbytes);
+        log_info("removed {} bytes", n);
+        ctx->nbytes += n;
     }
 
-    dispatch((uint8_t *)data, tbytes, ctx);
+    //log_debug("dispatching {} bytes", ctx->nbytes);
+
+    int r = dispatch((uint8_t *)(ctx->data), ctx->nbytes, ctx);
+
+    if (r) {
+        memmove(ctx->data, ctx->data + ctx->nbytes - r, r);
+        ctx->nbytes = r;
+    } else {
+        ctx->nbytes = 0;
+    }
 }
 
 static void eventcb(struct bufferevent *bev, short events, void *arg)
@@ -109,6 +113,8 @@ static void *worker_function(void *arg) {
     context->evbase = evbase;
     context->fd = create_bind_socket(context->enb_index);
     context->buf_ev = bufferevent_socket_new(context->evbase, context->fd, BEV_OPT_CLOSE_ON_FREE);
+    //bufferevent_set_max_single_write(context->buf_ev, 8192);
+    //bufferevent_set_max_single_read(context->buf_ev, 8192);
     bufferevent_setcb(context->buf_ev, readcb, NULL, eventcb, context);
     bufferevent_enable(context->buf_ev, EV_READ|EV_WRITE);
     if (bufferevent_socket_connect(context->buf_ev, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
