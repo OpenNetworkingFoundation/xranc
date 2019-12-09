@@ -31,11 +31,6 @@
 
 #define GWCORE_CMD_INFO_NAME "gwcore_info"
 
-#define REDIS_DB_IP "172.17.0.2"
-#define REDIS_DB_PORT 6379
-#define REDIS_TIMEOUT_SEC 1
-#define REDIS_TIMOUET_USEC 500000
-
 
 class GWCoreComponent : public AbstractGWCoreComponent {
     public:

@@ -18,6 +18,7 @@
 #define _CELIX_SB_BUNDLE_ACTIVATOR_H_
 
 #include <iostream>
+
 #include <celix/dm/DmActivator.h>
 #include <command.h>
 

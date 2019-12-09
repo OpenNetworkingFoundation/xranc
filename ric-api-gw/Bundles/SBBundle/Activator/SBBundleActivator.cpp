@@ -35,9 +35,12 @@ SBBundleActivator::init() {
         .addInterface<SBBundleComponent>(SB_BUNDLE_VERSION, props)
         .setCallbacks(&SBBundleComponent::init, &SBBundleComponent::start, &SBBundleComponent::stop, &SBBundleComponent::deinit);
         
+    std::stringstream gwCoreFilter;
+    gwCoreFilter << "(name=" << GWCORE_NAME << ")";
+    
     tmpComponent.createServiceDependency<AbstractGWCoreComponent>()
         .setRequired(true)
-        .setFilter("(name=GWCore)")
+        .setFilter(gwCoreFilter.str())
         .setCallbacks(&SBBundleComponent::setGWCoreComponent);
 
     tmpComponent.createCServiceDependency<log_service_t>(OSGI_LOGSERVICE_NAME)

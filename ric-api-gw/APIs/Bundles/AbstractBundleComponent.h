@@ -26,6 +26,13 @@ class AbstractBundleComponent {
         AbstractBundleComponent() = default;
         ~AbstractBundleComponent() = default;
         virtual void notifyEvent() = 0;
+        virtual void registerBundle() = 0;
+        virtual void unregisterBundle() = 0;
+
+        virtual void init() = 0;
+        virtual void start() = 0;
+        virtual void stop() = 0;
+        virtual void deinit() = 0;
 
     protected:
 

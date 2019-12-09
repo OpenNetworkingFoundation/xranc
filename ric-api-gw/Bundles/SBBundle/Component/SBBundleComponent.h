@@ -44,7 +44,7 @@ class SBBundleComponent : public AbstractBundleComponent {
 
         void setGWCoreComponent(AbstractGWCoreComponent* gwcore);
         void setLogService(const log_service_t* logSrv);
-        void notifyEvent() override;
+        void notifyEvent();
         void registerBundle();
         void unregisterBundle();
 
@@ -53,7 +53,7 @@ class SBBundleComponent : public AbstractBundleComponent {
         void stop();
         void deinit();
 
-        // for running gRPC
+        // for gRPC
         void runGRPCServer();
         void killGRPCServer();
         
