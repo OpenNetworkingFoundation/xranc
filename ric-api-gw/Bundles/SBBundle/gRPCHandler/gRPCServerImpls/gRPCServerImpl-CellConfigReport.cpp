@@ -73,10 +73,32 @@ gRPCServerImplCellConfigReport::CallData::proceed() {
         service_->RequestUpdateCellConfig(&ctx_, &request_, &responder_, cq_, cq_, this);
     } else if (status_ == PROCESS_UPDATECELLCONFIG) {
         std::stringstream logMsg;
-        logMsg << "RIC SB reports received CellConfigReport Message (PLMNID: " << request_.ecgi().plmnid() << ", ECID: " << request_.ecgi().ecid();
+        logMsg << "RIC SB reports received CellConfigReport Message (PLMNID: " << request_.ecgi().plmnid() << ", ECID: " << request_.ecgi().ecid() << ")";
 
         APIGWLogINFO(logSrv_, logMsg.str().c_str());
         logMsg.flush();
+        logMsg << "RIC SB reports received CellConfigReport Message\n* PLMNID: " << request_.ecgi().plmnid() << std::endl;
+            logMsg << "* ECID: " << request_.ecgi().ecid() << std::endl;
+            logMsg << "* PCI: " << request_.pci() << std::endl;
+            for (int index = 0; index < request_.candscells_size(); index++) {
+                logMsg << "* Cand-Scells (" << index << ")" << std::endl;
+                logMsg << "\t** PCI: " << request_.candscells(index).pci() << std::endl;
+                logMsg << "\t** EARFCN DL: " << request_.candscells(index).earfcndl() << std::endl;
+            }
+            logMsg << "* EARFCN DL: " << request_.earfcndl() << std::endl;
+            logMsg << "* EARFCN UL: " << request_.earfcnul() << std::endl;
+            logMsg << "* RBS Per TTI DL: " << request_.rbsperttidl() << std::endl;
+            logMsg << "* RBS Per TTI UL: " << request_.rbsperttiul() << std::endl;
+            logMsg << "* Num TX Antennas: " << request_.numtxantenna() << std::endl;
+            logMsg << "* Duplex Mode: " << request_.duplexmode() << std::endl; // 0: fdd, 1: tdd
+            logMsg << "* Max Num Connected UEs: " << request_.maxnumconnectedues() << std::endl;
+            logMsg << "* Max Num Connected Bearers: " << request_.maxnumconnectedbearers() << std::endl;
+            logMsg << "* Max Num UEs Sched Per TTI DL: " << request_.maxnumuesschedperttidl() << std::endl;
+            logMsg << "* Max Num UEs Sched Per TTI UL: " << request_.maxnumuesschedperttiul() << std::endl;
+            logMsg << "* DLFS Sched Enable: " << request_.dlfsschedenable() << std::endl; // 0: false, 255: true
+
+            APIGWLogDEBUG(logSrv_, logMsg.str().c_str());
+            logMsg.flush();
 
         new CallData (service_, cq_, logSrv_);
         status_ = FINISH;

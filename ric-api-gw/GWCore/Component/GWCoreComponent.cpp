@@ -53,15 +53,12 @@ GWCoreComponent::registerBundle(std::string key, AbstractBundleComponent* bundle
     std::cout << "GWCoreComponent - registerBundle" << std::endl;
     std::stringstream logMsg;
     logMsg << "Register " << key << " Bundle";
-    if (this->logSrv != nullptr) {
-        APIGWLogINFO(this->logSrv, logMsg.str().c_str());
-    }
+    APIGWLogINFO(this->logSrv, logMsg.str().c_str());
+
     addBundle(key, bundleComponent);
     logMsg.flush();
     logMsg << "Finished to register " << key << " Bundle";
-    if (this->logSrv != nullptr) {
-        APIGWLogINFO(this->logSrv, logMsg.str().c_str());
-    }
+    APIGWLogINFO(this->logSrv, logMsg.str().c_str());
 }
 
 void
@@ -69,15 +66,12 @@ GWCoreComponent::unregisterBundle(std::string key) {
     std::cout << "GWCoreComponent - unregisterBundle" << std::endl;
     std::stringstream logMsg;
     logMsg << "Unregister " << key << " Bundle";
-    if (this->logSrv != nullptr) {
         APIGWLogINFO(this->logSrv, logMsg.str().c_str());
-    }
+
     removeBundle(key);
     logMsg.flush();
     logMsg << "Finished to unregister " << key << " Bundle";
-    if (this->logSrv != nullptr) {
-        APIGWLogINFO(this->logSrv, logMsg.str().c_str());
-    }
+    APIGWLogINFO(this->logSrv, logMsg.str().c_str());
 }
 
 int

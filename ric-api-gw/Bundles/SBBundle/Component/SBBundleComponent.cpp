@@ -40,20 +40,16 @@ SBBundleComponent::registerBundle() {
     std::cout << "SBBundleComponent - registerBundle" << std::endl;
     std::stringstream logMsg;
     logMsg << "Register " << SB_BUNDLE_KEY << " Bundle";
-    if (this->logSrv != nullptr) {
-        APIGWLogINFO(this->logSrv, logMsg.str().c_str());
-    }
+    APIGWLogINFO(this->logSrv, logMsg.str().c_str());
+    
     if (gwCoreComponent) {
         gwCoreComponent->registerBundle(SB_BUNDLE_KEY, this);
         logMsg.flush();
         logMsg << "Finished to register " << SB_BUNDLE_KEY << " Bundle";
-        if (this->logSrv != nullptr) {
-            APIGWLogINFO(this->logSrv, logMsg.str().c_str());
-        }
+
+        APIGWLogINFO(this->logSrv, logMsg.str().c_str());
     } else {
-        if (this->logSrv != nullptr) {
-            APIGWLogERROR(this->logSrv, logMsg.str().c_str());
-        }
+        APIGWLogERROR(this->logSrv, logMsg.str().c_str());
     }
 }
 
@@ -62,20 +58,16 @@ SBBundleComponent::unregisterBundle() {
     std::cout << "SBBundleComponent - unregisterBundle" << std::endl;
     std::stringstream logMsg;
     logMsg << "Unregister " << SB_BUNDLE_KEY << " Bundle";
-    if (this->logSrv != nullptr) {
-        APIGWLogINFO(this->logSrv, logMsg.str().c_str());
-    }
+    APIGWLogINFO(this->logSrv, logMsg.str().c_str());
+
     if (gwCoreComponent) {
         gwCoreComponent->unregisterBundle(SB_BUNDLE_KEY);
         logMsg.flush();
         logMsg << "Finished to register " << SB_BUNDLE_KEY << " Bundle";
-        if (this->logSrv != nullptr) {
-            APIGWLogINFO(this->logSrv, logMsg.str().c_str());
-        }
+        
+        APIGWLogINFO(this->logSrv, logMsg.str().c_str());
     } else {
-        if (this->logSrv != nullptr) {
-            APIGWLogERROR(this->logSrv, logMsg.str().c_str());
-        }
+        APIGWLogERROR(this->logSrv, logMsg.str().c_str());
     }
 }
 
@@ -88,7 +80,6 @@ SBBundleComponent::runGRPCServer() {
     service->setServerPort(GRPC_SB_PORT);
     ((gRPCServerImplCellConfigReport*) service)->setLogService(logSrv);
     th1 = std::thread ([this] {service->run();});
-    //service->run();
 }
 
 void

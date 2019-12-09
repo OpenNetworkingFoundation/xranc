@@ -17,39 +17,57 @@
 #ifndef _APIGW_LOG_SERVICE_WRAPPER_H_
 #define _APIGW_LOG_SERVICE_WRAPPER_H_
 
+#define API_GW_LOG_LEVEL log_level_t::OSGI_LOGSERVICE_DEBUG //log_level_t::OSGI_FRAMEWORK_LOG_ERROR, OSGI_FRAMEWORK_LOG_WARNING, OSGI_FRAMEWORK_LOG_INFO, OSGI_FRAMEWORK_LOG_DEBUG
+
 #include <iostream>
 
 #include <log_service.h>
 #include <log_helper.h>
 
 inline void APIGWLogINFO(const log_service_t* logSrv, std::string msg ) {
-    if (logSrv) {
-        logSrv->log(logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) msg.c_str());
-    } else {
-        std::cout << "[LOGSERVICE IS NOT SET - INFO]: " << msg << std::endl;
+
+    if (API_GW_LOG_LEVEL >= log_level_t::OSGI_LOGSERVICE_INFO) {
+        if (logSrv) {
+            msg = "\033[0;32m[INFO] \033[0;m" + msg;
+            logSrv->log(logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) msg.c_str());
+        } else {
+            std::cout << "[No Logservice - \033[0;32mINFO\033[0;m]: " << msg << std::endl;
+        }
     }
 }
 inline void APIGWLogERROR(const log_service_t* logSrv, std::string msg ) {
-    if (logSrv) {
-        logSrv->log(logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) msg.c_str());
-    } else {
-        std::cout << "[LOGSERVICE IS NOT SET - INFO]: " << msg << std::endl;
+
+    if (API_GW_LOG_LEVEL >= log_level_t::OSGI_LOGSERVICE_ERROR) {
+        if (logSrv) {
+            msg = "\033[0;31m[ERROR] \033[0;m" + msg;
+            logSrv->log(logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) msg.c_str());
+        } else {
+            std::cout << "[No Logservice - \033[0;31mERROR\033[0;m]: " << msg << std::endl;
+        }
     }
 }
 
 inline void APIGWLogDEBUG(const log_service_t* logSrv, std::string msg ) {
-    if (logSrv) {
-        logSrv->log(logSrv->logger, OSGI_LOGSERVICE_DEBUG, (char *) msg.c_str());
-    } else {
-        std::cout << "[LOGSERVICE IS NOT SET - INFO]: " << msg << std::endl;
+
+    if (API_GW_LOG_LEVEL >= log_level_t::OSGI_LOGSERVICE_DEBUG) {
+        if (logSrv) {
+            msg = "\033[0;36m[DEBUG] \033[0;m" + msg;
+            logSrv->log(logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) msg.c_str());
+        } else {
+            std::cout << "[No Logservice - \033[0;35mDEBUG\033[0;m]: " << msg << std::endl;
+        }
     }
 }
 
 inline void APIGWLogWARN(const log_service_t* logSrv, std::string msg ) {
-    if (logSrv) {
-        logSrv->log(logSrv->logger, OSGI_LOGSERVICE_WARNING, (char *) msg.c_str());
-    } else {
-        std::cout << "[LOGSERVICE IS NOT SET - INFO]: " << msg << std::endl;
+
+    if (API_GW_LOG_LEVEL >= log_level_t::OSGI_LOGSERVICE_WARNING) {
+        if (logSrv) {
+            msg = "\033[0;33m[WARN] \033[0;m" + msg;
+            logSrv->log(logSrv->logger, OSGI_LOGSERVICE_WARNING, (char *) msg.c_str());
+        } else {
+            std::cout << "[No Logservice - \033[0;33mWARNNING\033[0;m]: " << msg << std::endl;
+        }
     }
 }
 
