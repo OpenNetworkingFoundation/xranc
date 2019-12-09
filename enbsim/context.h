@@ -53,9 +53,10 @@ typedef struct context {
     int enb_index;
     bool connected;
     struct event *ue_admission_timer;
+    char data[8192];
+    int nbytes;
 } context_t;
 
-void closecontext(context_t *context);
-void context_timers_add(context_t *context);
-void context_send(XRANCPDU *pdu, context_t *context);
+void ctx_close(context_t *context);
+void ctx_send(XRANCPDU *pdu, context_t *context);
 #endif

@@ -19,5 +19,5 @@
 
 #include "context.h"
 
-void dispatch(uint8_t *buffer, size_t buf_size, context_t *context);
+int dispatch(uint8_t *buffer, size_t buf_size, context_t *context);
 #endif

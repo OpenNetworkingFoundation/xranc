@@ -19,5 +19,5 @@
 
 #include "client.h"
 
-void dispatch(uint8_t *buffer, size_t buf_size, client_t *client);
+int dispatch(uint8_t *buffer, size_t buf_size, client_t *client);
 #endif

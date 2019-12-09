@@ -47,13 +47,8 @@ static void ue_admission_timeout(int fd, short event, void *arg)
     evtimer_del(context->ue_admission_timer);
 }
 
-void dispatch(uint8_t *buffer, size_t buf_size, context_t *context) {
+int dispatch(uint8_t *buffer, size_t buf_size, context_t *context) {
     XRANCPDU *pdu = 0;
-
-    int resp_buf_size = 4096;
-    char resp_buf[resp_buf_size];
-    int nbytes = 0;
-
     size_t remaining = buf_size;
     size_t consumed = 0;
     uint8_t *curr = buffer;
@@ -61,7 +56,8 @@ void dispatch(uint8_t *buffer, size_t buf_size, context_t *context) {
     do {
         consumed = decode(&pdu, curr, remaining);
         if (!consumed) {
-            log_error("Error decoding input: remaining={}, consumed={}", remaining, consumed);
+            //log_debug("bytes remaining={}, consumed={}", remaining, consumed);
+            return remaining;
         }
         remaining -= consumed;
         curr += consumed;
@@ -70,37 +66,29 @@ void dispatch(uint8_t *buffer, size_t buf_size, context_t *context) {
 
         switch (pdu->hdr.api_id) {
             case XRANC_API_ID_cellConfigRequest:
-                nbytes = cell_config_request(pdu, resp_buf, resp_buf_size, context);
+                cell_config_request(pdu, context);
                 break;
             case XRANC_API_ID_uEAdmissionResponse:
                 ue_admission_response(pdu, context);
                 break;
             default:
-                printf("Message %lu not handled\n", pdu->hdr.api_id);
+                log_error("ERROR message not handled, api_id:{}", pdu->hdr.api_id);
         }
 
         ASN_STRUCT_FREE(asn_DEF_XRANCPDU, pdu);
         pdu = 0;
 
-        if (nbytes) {
-            //struct evbuffer *tmp = evbuffer_new();
-            //evbuffer_add(tmp, resp_buf, nbytes);
-            if (bufferevent_write(context->buf_ev, resp_buf, nbytes)) {
-                printf("Error sending data to context on fd %d\n", context->fd);
-                closecontext(context);
-            }
-            //evbuffer_free(tmp);
-        }
     } while (remaining);
 
     if (context->connected == false) {
         struct timeval tv = {1, 0};
 
-        //printf("starting ues\n");
         log_info("starting ue admission timer");
         context->connected = true;
 
         context->ue_admission_timer = event_new(context->evbase, -1, EV_PERSIST, ue_admission_timeout, context);
         evtimer_add(context->ue_admission_timer, &tv);
     }
+
+    return 0;
 }

@@ -41,7 +41,7 @@ static void make_ecgi(ECGI_t *dest, int enb_index) {
     dest->eUTRANcellIdentifier.size = 4;
 }
 
-int cell_config_request(XRANCPDU *req, char *resp_buf, int resp_buf_size, context_t *context) {
+void cell_config_request(XRANCPDU *req, context_t *context) {
     // TODO
     XRANCPDU *resp;
     struct Cell cell;
@@ -86,17 +86,9 @@ int cell_config_request(XRANCPDU *req, char *resp_buf, int resp_buf_size, contex
     resp->body.choice.cellConfigReport.max_num_ues_sched_per_tti_ul = 10;
     resp->body.choice.cellConfigReport.dlfs_sched_enable = true;
 
-    //xer_fprint(stdout, &asn_DEF_XRANCPDU, resp);
-
-    asn_enc_rval_t er = asn_encode_to_buffer(0, ATS_BER, &asn_DEF_XRANCPDU, resp, resp_buf, resp_buf_size);
-    if(er.encoded > resp_buf_size) {
-       fprintf(stderr, "Buffer of size %d is too small for %s, need %zu\n",
-           resp_buf_size, asn_DEF_XRANCPDU.name, er.encoded);
-    }
-
-    ASN_STRUCT_FREE(asn_DEF_XRANCPDU, resp);
+    ctx_send(resp, context);
 
     log_debug("-> CCResp enodeb:{}", context->enb_index);
 
-    return  er.encoded;
+    ASN_STRUCT_FREE(asn_DEF_XRANCPDU, resp);
 }

@@ -39,20 +39,15 @@ void client_timers_add(client_t *client) {
 }
 
 void client_send(XRANCPDU *pdu, client_t *client) {
-    char buffer[4096];
-    int buf_size = 4096;
-	asn_enc_rval_t er;
+    asn_encode_to_new_buffer_result_t res = { NULL, {0, NULL, NULL} };
 
     trace_pdu(pdu);
 
-    er = asn_encode_to_buffer(0, ATS_BER, &asn_DEF_XRANCPDU, pdu, buffer, buf_size);
-    if(er.encoded > buf_size) {
-       fprintf(stderr, "Buffer of size %d is too small for %s, need %zu\n",
-           buf_size, asn_DEF_XRANCPDU.name, er.encoded);
-    }
+    res = asn_encode_to_new_buffer(0, ATS_BER, &asn_DEF_XRANCPDU, pdu);
 
-    if (bufferevent_write(client->buf_ev, buffer, er.encoded)) {
-        printf("Error sending data to client on fd %d\n", client->fd);
+    if (bufferevent_write(client->buf_ev, res.buffer, res.result.encoded)) {
+        log_error("ERROT sending data, fd {}", client->fd);
         closeClient(client);
     }
+    free(res.buffer);
 }

@@ -38,19 +38,18 @@ static size_t decode(XRANCPDU **pdu, uint8_t *buffer, size_t buf_size) {
     return rval.consumed;
 }
 
-void dispatch(uint8_t *buffer, size_t buf_size, client_t *client) {
+int dispatch(uint8_t *buffer, size_t buf_size, client_t *client) {
     XRANCPDU *pdu = 0;
-
-
     size_t remaining = buf_size;
     size_t consumed = 0;
     uint8_t *curr = buffer;
 
+    //log_debug("dispatch: bytes={}", buf_size);
     do {
         consumed = decode(&pdu, curr, remaining);
         if (!consumed) {
-            log_error("Error decoding input: remaining={}, consumed={}", remaining, consumed);
-            break;
+            //log_debug("dispatch: bytes remaining={}/{}", remaining, buf_size);
+            return remaining;
         }
         remaining -= consumed;
         curr += consumed;
@@ -86,4 +85,6 @@ void dispatch(uint8_t *buffer, size_t buf_size, client_t *client) {
         ASN_STRUCT_FREE(asn_DEF_XRANCPDU, pdu);
         pdu = 0;
     } while (remaining);
+
+    return 0;
 }
