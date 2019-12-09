@@ -26,6 +26,8 @@
 #include <log_helper.h>
 #include <hiredis.h>
 
+#include <gRPCAPIs/cpp/gRPCServers/gRPCServer-CellConfigReport.h>
+
 #include "../Activator/RedisBundleActivator.h"
 #include "../../../APIs/Bundles/AbstractBundleComponent.h"
 #include "../../../APIs/GWCore/AbstractGWCoreComponent.h"
@@ -42,9 +44,8 @@ class RedisBundleComponent : public AbstractBundleComponent {
         RedisBundleComponent() = default;
         ~RedisBundleComponent() = default;
 
-        void setGWCoreComponent(AbstractGWCoreComponent* gwcore);
         void setLogService(const log_service_t* logSrv);
-        void notifyEvent();
+        void notifyEvent(std::string srcBundle, std::string dstBundle, std::map<std::string, std::map<std::string, std::string>> statements);
         void registerBundle();
         void unregisterBundle();
 
@@ -53,11 +54,17 @@ class RedisBundleComponent : public AbstractBundleComponent {
         void stop();
         void deinit();
 
+        void setGWCoreComponent(AbstractGWCoreComponent* gwcore);
+        AbstractGWCoreComponent* getGWCoreComponent();
+
+        // for Redis access
+        void updateCellConfigReport(std::map<std::string, std::map<std::string, std::string>> statements);
+
     protected:
 
     private:
-        AbstractGWCoreComponent* gwCoreComponent {nullptr};
         const log_service_t* logSrv {nullptr};
+        AbstractGWCoreComponent* gwCoreComponent {nullptr};
 };
 
 #endif /* _REDIS_BUNDLE_COMPONENT_H_ */

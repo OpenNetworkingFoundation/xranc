@@ -65,6 +65,10 @@ sudo enbsim/config-ip.sh
 Start enbsim with 20 enodebs. Currently it only responds to cell config requests. If xranc is listening on 127.0.0.1 port 5555, the following command will start 20 enodebs:
 ```
 ./enbsim 127.0.0.1 5555 20 1
+
+### Deploy 
+
+
 ```
 #### Misc
 

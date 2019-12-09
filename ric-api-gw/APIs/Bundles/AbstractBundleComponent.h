@@ -20,12 +20,13 @@
 #define BUNDLE_VERSION "1.0.0"
 
 #include <iostream>
+#include <map>
 
 class AbstractBundleComponent {
     public:
         AbstractBundleComponent() = default;
         ~AbstractBundleComponent() = default;
-        virtual void notifyEvent() = 0;
+        virtual void notifyEvent(std::string srcBundle, std::string dstBundle, std::map<std::string, std::map<std::string, std::string>> statements) = 0;
         virtual void registerBundle() = 0;
         virtual void unregisterBundle() = 0;
 

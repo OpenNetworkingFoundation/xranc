@@ -17,12 +17,6 @@
 #include "RedisBundleComponent.h"
 
 void 
-RedisBundleComponent::setGWCoreComponent(AbstractGWCoreComponent* gwcore) {
-    std::cout << "RedisBundleComponent - setGWCoreComponent" << std::endl;
-    this->gwCoreComponent = gwcore;
-}
-
-void 
 RedisBundleComponent::setLogService(const log_service_t* logSrv) {
     //for logging
     std::cout << "RedisBundleComponent - setLogService" << std::endl;
@@ -30,9 +24,10 @@ RedisBundleComponent::setLogService(const log_service_t* logSrv) {
 }
 
 void
-RedisBundleComponent::notifyEvent() {
-    std::cout << "RedisBundleComponent - notifyEvent" << std::endl;
-    APIGWLogINFO(this->logSrv, "RedisBundleComponent - notifyEvent");
+RedisBundleComponent::notifyEvent(std::string srcBundle, std::string dstBundle, std::map<std::string, std::map<std::string, std::string>> statements) {
+    std::string notifyResult = "SRC: " + srcBundle + " DST: " + dstBundle;
+    APIGWLogDEBUG(logSrv, notifyResult);
+    updateCellConfigReport(statements);
 }
 
 void
@@ -91,4 +86,89 @@ RedisBundleComponent::stop() {
 void
 RedisBundleComponent::deinit() {
     std::cout << "RedisBundleComponent - deinit" << std::endl;
+}
+
+ void
+RedisBundleComponent::setGWCoreComponent(AbstractGWCoreComponent* gwcore) {
+    this->gwCoreComponent = gwcore;
+}
+
+AbstractGWCoreComponent*
+RedisBundleComponent::getGWCoreComponent() {
+    return gwCoreComponent;
+}
+
+void
+RedisBundleComponent::updateCellConfigReport(std::map<std::string, std::map<std::string, std::string>> statements) {
+    
+    struct timeval timeout = {REDIS_TIMEOUT_SEC, REDIS_TIMOUET_USEC};
+    redisContext* context = redisConnectWithTimeout(REDIS_DB_IP, REDIS_DB_PORT, timeout);
+
+    if (context == NULL && context->err) {
+        if (context) {
+            std::stringstream errorMsg;
+            errorMsg << "Connection Error: " << context->errstr;
+            APIGWLogERROR(logSrv, errorMsg.str());
+        } else {
+            APIGWLogERROR(logSrv, "Connection Error: Cannot allocate redis context");
+        }
+    }
+
+    // push ECGI
+    std::stringstream tmpEcgiKey;
+    tmpEcgiKey << DB_ECGI_KEY << ":" << statements.at(DB_ECGI_KEY).at(DB_PLMNID_KEY) << "+" << statements.at(DB_ECGI_KEY).at(DB_ECID_KEY);
+    std::stringstream queryEcgi;
+    queryEcgi << "hmset " << tmpEcgiKey.str() << " " << DB_PLMNID_KEY << " " << statements.at(DB_ECGI_KEY).at(DB_PLMNID_KEY) << " " << DB_ECGI_KEY << " " << statements.at(DB_ECGI_KEY).at(DB_ECID_KEY);
+    redisReply* reply = (redisReply*)redisCommand(context, queryEcgi.str().c_str());
+    freeReplyObject(reply);
+    queryEcgi.str("");
+    queryEcgi << "sadd " << DB_ECGI_LIST << " " << tmpEcgiKey.str();
+    reply = (redisReply*)redisCommand(context, queryEcgi.str().c_str());
+    freeReplyObject(reply);
+    queryEcgi.str("");
+
+    // push Cand-Scells
+    std::stringstream tmpCandScellsKey;
+    tmpCandScellsKey << DB_CAND_SCELL_KEY << ":" << tmpEcgiKey.str();
+    std::stringstream queryCandScells;
+    for (std::map<std::string, std::string>::iterator it = statements[DB_CAND_SCELLS_KEY].begin(); it != statements[DB_CAND_SCELLS_KEY].end(); ++it) {
+        queryCandScells.str("");
+        std::string tmpCandScellKey = tmpCandScellsKey.str() + ":" + it->first;
+        queryCandScells << "sadd " << DB_CSCELLS_LIST << " " << tmpCandScellsKey.str();
+        reply = (redisReply*)redisCommand(context, queryCandScells.str().c_str());
+        freeReplyObject(reply);
+        
+        queryCandScells.str("");
+        queryCandScells << "sadd " << tmpCandScellsKey.str() << " " << tmpCandScellKey;
+        reply = (redisReply*)redisCommand(context, queryCandScells.str().c_str());
+        freeReplyObject(reply);
+
+        std::stringstream tmpCellKey;
+        tmpCellKey << DB_CAND_SCELL_KEY << ":" << it->first;
+        queryCandScells.str("");
+        queryCandScells << "hmset " << tmpCandScellKey << " " << DB_PCI_KEY << " " << statements.at(it->second).at(DB_PCI_KEY) << " " << DB_EARFCN_DL << " " << statements.at(it->second).at(DB_EARFCN_DL);
+        reply = (redisReply*)redisCommand(context, queryCandScells.str().c_str());
+        freeReplyObject(reply);
+    }
+
+    // push eNB
+    std::stringstream tmpENBKey;
+    tmpENBKey << DB_ENB_KEY << ":" << tmpEcgiKey.str();
+    std::stringstream queryENB;
+    queryENB << "hmset " << tmpENBKey.str() << " " << DB_ECGI_KEY << " " << tmpEcgiKey.str() << " " << DB_PCI_KEY << " " << statements.at(DB_ENB_KEY).at(DB_PCI_KEY)
+        << " " << DB_CAND_SCELLS_KEY << " " << tmpCandScellsKey.str() << " " << DB_EARFCN_DL << " " << statements.at(DB_ENB_KEY).at(DB_EARFCN_DL)
+        << " " << DB_EARFCN_UL << " " << statements.at(DB_ENB_KEY).at(DB_EARFCN_UL) << " " << DB_RBS_PER_TTI_DL
+        << " " << statements.at(DB_ENB_KEY).at(DB_RBS_PER_TTI_DL) << " " << DB_RBS_PER_TTI_UL << " " << statements.at(DB_ENB_KEY).at(DB_RBS_PER_TTI_UL)
+        << " " << DB_NUM_TX_ANTENNAS << " " << statements.at(DB_ENB_KEY).at(DB_NUM_TX_ANTENNAS) << " " << DB_DUPLEX_MODE
+        << " " << statements.at(DB_ENB_KEY).at(DB_DUPLEX_MODE) << " " << DB_MAX_NUM_CONNECTED_UES << " " << statements.at(DB_ENB_KEY).at(DB_MAX_NUM_CONNECTED_UES)
+        << " " << DB_MAX_NUM_CONNECTED_BEARERS << " " << statements.at(DB_ENB_KEY).at(DB_MAX_NUM_CONNECTED_BEARERS) << " " << DB_MAX_NUM_UES_SCHED_PER_TTI_DL
+        << " " << statements.at(DB_ENB_KEY).at(DB_MAX_NUM_UES_SCHED_PER_TTI_DL) << " " << DB_MAX_NUM_UES_SCHED_PER_TTI_UL
+        << " " << statements.at(DB_ENB_KEY).at(DB_MAX_NUM_UES_SCHED_PER_TTI_UL) << " " << DB_DFLS_SCHED_ENABLE 
+        << " " << statements.at(DB_ENB_KEY).at(DB_DFLS_SCHED_ENABLE);
+    reply = (redisReply*)redisCommand(context, queryENB.str().c_str());
+    freeReplyObject(reply);
+    queryENB.str("");
+    queryENB << "sadd " << DB_ENB_LIST << " " << tmpENBKey.str();
+    reply = (redisReply*)redisCommand(context, queryENB.str().c_str());
+    freeReplyObject(reply);
 }

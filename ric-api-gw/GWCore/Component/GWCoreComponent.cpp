@@ -37,8 +37,16 @@ GWCoreComponent::deinit() {
 }
 
 void
-GWCoreComponent::notifyEvent() {
-    this->logSrv->log(this->logSrv->logger, OSGI_LOGSERVICE_INFO, (char *) "Notify Event");
+GWCoreComponent::notifyEvent(std::string srcBundle, std::string dstBundle, std::map<std::string, std::map<std::string, std::string>> statements) {
+    std::string notifyResult = "SRC: " + srcBundle + " DST: " + dstBundle;
+    APIGWLogDEBUG(logSrv, notifyResult);
+
+    // To-Do: Connecting Match-Action table here
+    std::map<std::string, AbstractBundleComponent*>::iterator hasKey = bundles.find(dstBundle);
+
+    if (hasKey != bundles.end()) {
+        hasKey->second->notifyEvent(srcBundle, dstBundle, statements);
+    }
 }
 
 void

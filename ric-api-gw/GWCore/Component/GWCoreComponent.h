@@ -46,9 +46,9 @@ class GWCoreComponent : public AbstractGWCoreComponent {
 
         int infoCmd(char* line, FILE* out, FILE* err);  //implements cmd service
 
-        void notifyEvent() override;
-        void registerBundle(std::string key, AbstractBundleComponent* bundleComponent) override;
-        void unregisterBundle(std::string key) override;
+        void notifyEvent(std::string srcBundle, std::string dstBundle, std::map<std::string, std::map<std::string, std::string>> statements);
+        void registerBundle(std::string key, AbstractBundleComponent* bundleComponent);
+        void unregisterBundle(std::string key);
 
     protected:
 

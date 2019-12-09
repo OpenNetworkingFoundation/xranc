@@ -17,12 +17,6 @@
 #include "SBBundleComponent.h"
 
 void 
-SBBundleComponent::setGWCoreComponent(AbstractGWCoreComponent* gwcore) {
-    std::cout << "SBBundleComponent - setGWCoreComponent" << std::endl;
-    this->gwCoreComponent = gwcore;
-}
-
-void 
 SBBundleComponent::setLogService(const log_service_t* logSrv) {
     //for logging
     std::cout << "SBBundleComponent - setLogService" << std::endl;
@@ -30,7 +24,7 @@ SBBundleComponent::setLogService(const log_service_t* logSrv) {
 }
 
 void
-SBBundleComponent::notifyEvent() {
+SBBundleComponent::notifyEvent(std::string srcBundle, std::string dstBundle, std::map<std::string, std::map<std::string, std::string>> statements) {
     std::cout << "SBBundleComponent - notifyEvent" << std::endl;
     APIGWLogINFO(this->logSrv, "SBBundleComponent - notifyEvent");
 }
@@ -75,10 +69,9 @@ void
 SBBundleComponent::runGRPCServer() {
     
     //To-Do: remove this hard coded part and get this information from GWCore
-    service = new gRPCServerImplCellConfigReport();
+    service = new gRPCServerImplCellConfigReport(logSrv, getGWCoreComponent());
     service->setServerIP(GRPC_SB_IP);
     service->setServerPort(GRPC_SB_PORT);
-    ((gRPCServerImplCellConfigReport*) service)->setLogService(logSrv);
     th1 = std::thread ([this] {service->run();});
 }
 
@@ -110,4 +103,14 @@ SBBundleComponent::stop() {
 void
 SBBundleComponent::deinit() {
     std::cout << "SBBundleComponent - deinit" << std::endl;
+}
+
+ void
+ SBBundleComponent::setGWCoreComponent(AbstractGWCoreComponent* gwcore) {
+    this->gwCoreComponent = gwcore;
+}
+
+AbstractGWCoreComponent*
+SBBundleComponent::getGWCoreComponent() {
+    return gwCoreComponent;
 }

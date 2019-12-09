@@ -18,6 +18,10 @@
 
 gRPCServerImplCellConfigReport::gRPCServerImplCellConfigReport() {}
 
+gRPCServerImplCellConfigReport::gRPCServerImplCellConfigReport(AbstractGWCoreComponent* gwCoreComponent) : gwCoreComponent(gwCoreComponent) {}
+
+gRPCServerImplCellConfigReport::gRPCServerImplCellConfigReport(const log_service_t* logSrv, AbstractGWCoreComponent* gwCoreComponent) : logSrv(logSrv), gwCoreComponent(gwCoreComponent) {}
+
 gRPCServerImplCellConfigReport::~gRPCServerImplCellConfigReport() {
     server->Shutdown();
     cq->Shutdown();
@@ -37,7 +41,7 @@ gRPCServerImplCellConfigReport::run() {
 
 void 
 gRPCServerImplCellConfigReport::handleRPCs() {
-    new CallData (&service, cq.get(), this->logSrv);
+    new CallData (&service, cq.get(), gwCoreComponent, this->logSrv);
     void* tag;
     bool ok;
     while (true) {
@@ -58,11 +62,11 @@ gRPCServerImplCellConfigReport::shutdownGRPCServer() {
     cq->Shutdown();
 }
 
-gRPCServerImplCellConfigReport::CallData::CallData(gRPCCellConfigReport::gRPCCellConfigReportUpdater::AsyncService* service, grpc::ServerCompletionQueue* cq, const log_service_t* logSrv) : AbstractCallData(service, cq), status_(CREATE), logSrv_(logSrv) {
+gRPCServerImplCellConfigReport::CallData::CallData(gRPCCellConfigReport::gRPCCellConfigReportUpdater::AsyncService* service, grpc::ServerCompletionQueue* cq, AbstractGWCoreComponent* gwCoreComponent, const log_service_t* logSrv) : AbstractCallData(service, cq), status_(CREATE), gwCoreComponent_(gwCoreComponent), logSrv_(logSrv) {
     proceed();
 }
 
-gRPCServerImplCellConfigReport::CallData::CallData(gRPCCellConfigReport::gRPCCellConfigReportUpdater::AsyncService* service, grpc::ServerCompletionQueue* cq) : AbstractCallData(service, cq), status_(CREATE) {
+gRPCServerImplCellConfigReport::CallData::CallData(gRPCCellConfigReport::gRPCCellConfigReportUpdater::AsyncService* service, grpc::ServerCompletionQueue* cq, AbstractGWCoreComponent* gwCoreComponent) : AbstractCallData(service, cq), status_(CREATE), gwCoreComponent_(gwCoreComponent) {
 
 }
 
@@ -76,31 +80,73 @@ gRPCServerImplCellConfigReport::CallData::proceed() {
         logMsg << "RIC SB reports received CellConfigReport Message (PLMNID: " << request_.ecgi().plmnid() << ", ECID: " << request_.ecgi().ecid() << ")";
 
         APIGWLogINFO(logSrv_, logMsg.str().c_str());
-        logMsg.flush();
+        logMsg.str("");
         logMsg << "RIC SB reports received CellConfigReport Message\n* PLMNID: " << request_.ecgi().plmnid() << std::endl;
-            logMsg << "* ECID: " << request_.ecgi().ecid() << std::endl;
-            logMsg << "* PCI: " << request_.pci() << std::endl;
-            for (int index = 0; index < request_.candscells_size(); index++) {
-                logMsg << "* Cand-Scells (" << index << ")" << std::endl;
-                logMsg << "\t** PCI: " << request_.candscells(index).pci() << std::endl;
-                logMsg << "\t** EARFCN DL: " << request_.candscells(index).earfcndl() << std::endl;
-            }
-            logMsg << "* EARFCN DL: " << request_.earfcndl() << std::endl;
-            logMsg << "* EARFCN UL: " << request_.earfcnul() << std::endl;
-            logMsg << "* RBS Per TTI DL: " << request_.rbsperttidl() << std::endl;
-            logMsg << "* RBS Per TTI UL: " << request_.rbsperttiul() << std::endl;
-            logMsg << "* Num TX Antennas: " << request_.numtxantenna() << std::endl;
-            logMsg << "* Duplex Mode: " << request_.duplexmode() << std::endl; // 0: fdd, 1: tdd
-            logMsg << "* Max Num Connected UEs: " << request_.maxnumconnectedues() << std::endl;
-            logMsg << "* Max Num Connected Bearers: " << request_.maxnumconnectedbearers() << std::endl;
-            logMsg << "* Max Num UEs Sched Per TTI DL: " << request_.maxnumuesschedperttidl() << std::endl;
-            logMsg << "* Max Num UEs Sched Per TTI UL: " << request_.maxnumuesschedperttiul() << std::endl;
-            logMsg << "* DLFS Sched Enable: " << request_.dlfsschedenable() << std::endl; // 0: false, 255: true
+        logMsg << "* ECID: " << request_.ecgi().ecid() << std::endl;
+        logMsg << "* PCI: " << request_.pci() << std::endl;
+        for (int index = 0; index < request_.candscells_size(); index++) {
+            logMsg << "* Cand-Scells (" << index << ")" << std::endl;
+            logMsg << "\t** PCI: " << request_.candscells(index).pci() << std::endl;
+            logMsg << "\t** EARFCN DL: " << request_.candscells(index).earfcndl() << std::endl;
+        }
+        logMsg << "* EARFCN DL: " << request_.earfcndl() << std::endl;
+        logMsg << "* EARFCN UL: " << request_.earfcnul() << std::endl;
+        logMsg << "* RBS Per TTI DL: " << request_.rbsperttidl() << std::endl;
+        logMsg << "* RBS Per TTI UL: " << request_.rbsperttiul() << std::endl;
+        logMsg << "* Num TX Antennas: " << request_.numtxantenna() << std::endl;
+        logMsg << "* Duplex Mode: " << request_.duplexmode() << std::endl; // 0: fdd, 1: tdd
+        logMsg << "* Max Num Connected UEs: " << request_.maxnumconnectedues() << std::endl;
+        logMsg << "* Max Num Connected Bearers: " << request_.maxnumconnectedbearers() << std::endl;
+        logMsg << "* Max Num UEs Sched Per TTI DL: " << request_.maxnumuesschedperttidl() << std::endl;
+        logMsg << "* Max Num UEs Sched Per TTI UL: " << request_.maxnumuesschedperttiul() << std::endl;
+        logMsg << "* DLFS Sched Enable: " << request_.dlfsschedenable() << std::endl; // 0: false, 255: true
 
-            APIGWLogDEBUG(logSrv_, logMsg.str().c_str());
-            logMsg.flush();
+        APIGWLogDEBUG(logSrv_, logMsg.str().c_str());
+        logMsg.str("");
 
-        new CallData (service_, cq_, logSrv_);
+        // Packaging CellConfigReport information to std::map
+        std::map<std::string, std::map<std::string, std::string>> statements;
+        std::map<std::string, std::string> tmpEcgiMap;
+        std::map<std::string, std::string> tmpCandScellsMap;
+        std::map<std::string, std::string> tmpENBMap;
+        
+        // ECGI
+        tmpEcgiMap[DB_PLMNID_KEY] = request_.ecgi().plmnid();
+        tmpEcgiMap[DB_ECID_KEY] = request_.ecgi().ecid();
+        statements[DB_ECGI_KEY] = tmpEcgiMap;
+        
+        // CAND-SCELLS
+        for (int index = 0; index < request_.candscells_size(); index++) {
+            std::stringstream tmpCandScellKey;
+            tmpCandScellKey << DB_CAND_SCELL_KEY << ":" << index;
+            tmpCandScellsMap[std::to_string(index)] = tmpCandScellKey.str();
+            std::map<std::string, std::string> tmpCandScellMap;
+            tmpCandScellMap[DB_PCI_KEY] = request_.candscells(index).pci();
+            tmpCandScellMap[DB_EARFCN_DL] = request_.candscells(index).earfcndl();
+            statements[tmpCandScellKey.str()] = tmpCandScellMap;
+        }
+        statements[DB_CAND_SCELLS_KEY] = tmpCandScellsMap;
+
+        // eNB
+        tmpENBMap[DB_ECGI_KEY] = DB_ECGI_KEY;
+        tmpENBMap[DB_PCI_KEY] = request_.pci();
+        tmpENBMap[DB_CAND_SCELLS_KEY] = DB_CAND_SCELLS_KEY;
+        tmpENBMap[DB_EARFCN_DL] = request_.earfcndl();
+        tmpENBMap[DB_EARFCN_UL] = request_.earfcnul();
+        tmpENBMap[DB_RBS_PER_TTI_DL] = request_.rbsperttidl();
+        tmpENBMap[DB_RBS_PER_TTI_UL] = request_.rbsperttiul();
+        tmpENBMap[DB_NUM_TX_ANTENNAS] = request_.numtxantenna();
+        tmpENBMap[DB_DUPLEX_MODE] = request_.duplexmode();
+        tmpENBMap[DB_MAX_NUM_CONNECTED_UES] = request_.maxnumconnectedues();
+        tmpENBMap[DB_MAX_NUM_CONNECTED_BEARERS] = request_.maxnumconnectedbearers();
+        tmpENBMap[DB_MAX_NUM_UES_SCHED_PER_TTI_DL] = request_.maxnumuesschedperttidl();
+        tmpENBMap[DB_MAX_NUM_UES_SCHED_PER_TTI_UL] = request_.maxnumuesschedperttiul();
+        tmpENBMap[DB_DFLS_SCHED_ENABLE] = request_.dlfsschedenable();
+        statements[DB_ENB_KEY] = tmpENBMap;
+
+        gwCoreComponent_->notifyEvent(SB_BUNDLE_KEY, REDIS_BUNDLE_KEY, statements);
+
+        new CallData (service_, cq_, gwCoreComponent_, logSrv_);
         status_ = FINISH;
         responder_.Finish(reply_, grpc::Status::OK, this);
     } else {
@@ -115,4 +161,14 @@ gRPCServerImplCellConfigReport::CallData::proceed() {
 void
 gRPCServerImplCellConfigReport::setLogService(const log_service_t* logSrv) {
     this->logSrv = logSrv;
+}
+
+void
+gRPCServerImplCellConfigReport::setGWCoreComponent(AbstractGWCoreComponent* gwCoreComponent) {
+    this->gwCoreComponent = gwCoreComponent;
+}
+
+AbstractGWCoreComponent*
+gRPCServerImplCellConfigReport::getGWCoreComponent() {
+    return gwCoreComponent;
 }

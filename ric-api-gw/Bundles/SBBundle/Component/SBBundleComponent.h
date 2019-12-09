@@ -42,9 +42,8 @@ class SBBundleComponent : public AbstractBundleComponent {
         SBBundleComponent() = default;
         ~SBBundleComponent() = default;
 
-        void setGWCoreComponent(AbstractGWCoreComponent* gwcore);
         void setLogService(const log_service_t* logSrv);
-        void notifyEvent();
+        void notifyEvent(std::string srcBundle, std::string dstBundle, std::map<std::string, std::map<std::string, std::string>> statements);
         void registerBundle();
         void unregisterBundle();
 
@@ -56,12 +55,15 @@ class SBBundleComponent : public AbstractBundleComponent {
         // for gRPC
         void runGRPCServer();
         void killGRPCServer();
+
+        void setGWCoreComponent(AbstractGWCoreComponent* gwcore);
+        AbstractGWCoreComponent* getGWCoreComponent();
         
     protected:
 
     private:
-        AbstractGWCoreComponent* gwCoreComponent {nullptr};
         gRPCServerCellConfigReport* service {nullptr};
+        AbstractGWCoreComponent* gwCoreComponent {nullptr};
         std::thread th1;
         const log_service_t* logSrv {nullptr};
 };

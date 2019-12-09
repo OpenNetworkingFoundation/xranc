@@ -30,13 +30,17 @@
 #include <gRPCAPIs/cpp/gRPCServers/gRPCServer-CellConfigReport.h>
 #include <gRPCAPIs/cpp/gRPCPB/gRPC-CellConfigReport.grpc.pb.h>
 
-#include "../../../APIs/Common/APIGwLogServiceWrapper.h"
-#include "../../Component/SBBundleComponent.h"
+#include "Common/APIGwLogServiceWrapper.h"
+#include "SBBundleComponent.h"
+#include "GWCore/AbstractGWCoreComponent.h"
+#include "../../../RedisBundle/Activator/RedisBundleActivator.h"
 
 class gRPCServerImplCellConfigReport final : public gRPCServerCellConfigReport {
     
     public:
         gRPCServerImplCellConfigReport();
+        gRPCServerImplCellConfigReport(AbstractGWCoreComponent* gwCoreComponent);
+        gRPCServerImplCellConfigReport(const log_service_t* logSrv, AbstractGWCoreComponent* gwCoreComponent);
         ~gRPCServerImplCellConfigReport();
 
         void run();
@@ -44,20 +48,25 @@ class gRPCServerImplCellConfigReport final : public gRPCServerCellConfigReport {
         void shutdownGRPCServer();
 
         void setLogService(const log_service_t* logSrv);
+        void setGWCoreComponent(AbstractGWCoreComponent* gwCoreComponent);
+        AbstractGWCoreComponent* getGWCoreComponent();
 
     private:
         class CallData : public AbstractCallData {
             public:
-                CallData(gRPCCellConfigReport::gRPCCellConfigReportUpdater::AsyncService* service, grpc::ServerCompletionQueue* cq, const log_service_t* logSrv);
-                CallData(gRPCCellConfigReport::gRPCCellConfigReportUpdater::AsyncService* service, grpc::ServerCompletionQueue* cq);
+                CallData(gRPCCellConfigReport::gRPCCellConfigReportUpdater::AsyncService* service, grpc::ServerCompletionQueue* cq, AbstractGWCoreComponent* gwCoreComponent, const log_service_t* logSrv);
+                CallData(gRPCCellConfigReport::gRPCCellConfigReportUpdater::AsyncService* service, grpc::ServerCompletionQueue* cq, AbstractGWCoreComponent* gwCoreComponent);
                 void proceed();
+
             private:
                 enum CallStatus { CREATE, PROCESS_UPDATECELLCONFIG, FINISH };
                 CallStatus status_;
+                AbstractGWCoreComponent* gwCoreComponent_ {nullptr};
                 const log_service_t* logSrv_ {nullptr};
         };
 
         const log_service_t* logSrv {nullptr};
+        AbstractGWCoreComponent* gwCoreComponent {nullptr};
 
     protected:
 

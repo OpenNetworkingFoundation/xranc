@@ -26,7 +26,7 @@ add_celix_bundle(SBBundle
 )
 
 include_directories(
-        ../APIs
+        ../../APIs
         ./Activator
         ./Component
         ./gRPCHandler/gRPCServerImpls
