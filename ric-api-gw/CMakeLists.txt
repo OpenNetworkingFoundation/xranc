@@ -58,6 +58,7 @@ foreach(item IN ITEMS ${CELIX_INCLUDE_DIRS})
 endforeach()
 add_subdirectory(GWCore)
 add_subdirectory(Bundles/SBBundle)
+add_subdirectory(Bundles/RedisBundle)
 add_celix_container(ric-api-gw
         CXX
         BUNDLES
@@ -68,6 +69,7 @@ add_celix_container(ric-api-gw
                 ${CELIX_BUNDLES_DIR}/log_service.zip # for logging
                 GWCore
                 SBBundle
+                RedisBundle
         PROPERTIES
             LOGHELPER_ENABLE_STDOUT_FALLBACK=true
             BUILD_REMOTE_SHELL=ON
