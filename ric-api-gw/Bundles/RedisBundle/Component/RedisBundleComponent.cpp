@@ -171,4 +171,6 @@ RedisBundleComponent::updateCellConfigReport(std::map<std::string, std::map<std:
     queryENB << "sadd " << DB_ENB_LIST << " " << tmpENBKey.str();
     reply = (redisReply*)redisCommand(context, queryENB.str().c_str());
     freeReplyObject(reply);
+
+    redisFree(context);
 }

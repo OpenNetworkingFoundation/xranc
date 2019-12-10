@@ -72,13 +72,14 @@ SBBundleComponent::runGRPCServer() {
     service = new gRPCServerImplCellConfigReport(logSrv, getGWCoreComponent());
     service->setServerIP(GRPC_SB_IP);
     service->setServerPort(GRPC_SB_PORT);
-    th1 = std::thread ([this] {service->run();});
+    th1 = new std::thread ([this] {service->run();});
 }
 
 void
 SBBundleComponent::killGRPCServer() {
     service->shutdownGRPCServer();
-    th1.detach();
+    th1->join();
+    delete th1;
 }
 
 void

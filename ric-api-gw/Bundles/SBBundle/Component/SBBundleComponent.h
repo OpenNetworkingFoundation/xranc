@@ -64,7 +64,7 @@ class SBBundleComponent : public AbstractBundleComponent {
     private:
         gRPCServerCellConfigReport* service {nullptr};
         AbstractGWCoreComponent* gwCoreComponent {nullptr};
-        std::thread th1;
+        std::thread* th1 {nullptr};
         const log_service_t* logSrv {nullptr};
 };
 
