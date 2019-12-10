@@ -14,13 +14,29 @@
  * limitations under the License.
  */
 
-#include "gRPCServer-CellConfigReport.h"
+#ifndef _CELIX_SB_BUNDLE_ACTIVATOR_H_
+#define _CELIX_SB_BUNDLE_ACTIVATOR_H_
 
-gRPCServerCellConfigReport::gRPCServerCellConfigReport() {}
+#include <iostream>
 
-gRPCServerCellConfigReport::~gRPCServerCellConfigReport() {
-    server->Shutdown();
-    cq->Shutdown();
-}
+#include <celix/dm/DmActivator.h>
+#include <command.h>
 
-gRPCServerCellConfigReport::AbstractCallData::AbstractCallData(gRPCCellConfigReport::gRPCCellConfigReportUpdater::AsyncService* service, grpc::ServerCompletionQueue* cq) : service_(service), cq_(cq), responder_(&ctx_) {}
+#include "../Component/SBBundleComponent.h"
+
+#define SB_BUNDLE_VERSION "1.0.0"
+#define SB_BUNDLE_KEY "SBBundle"
+
+class SBBundleActivator : public DmActivator {
+
+    public:
+        SBBundleActivator(DependencyManager& mng) : DmActivator(mng) {}
+        virtual void init();
+        virtual void deinit();
+
+    protected:
+
+    private:
+};
+
+#endif /* _CELIX_SB_BUNDLE_ACTIVATOR_H_ */

@@ -9,3 +9,6 @@
 	path = common/grpc
 	url = https://github.com/grpc/grpc
 	branch = v1.20.x
+[submodule "common/celix"]
+	path = common/celix
+	url = https://github.com/apache/celix

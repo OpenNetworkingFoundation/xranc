@@ -14,13 +14,29 @@
  * limitations under the License.
  */
 
-#include "gRPCServer-CellConfigReport.h"
+#ifndef _REDIS_BUNDLE_ACTIVATOR_H_
+#define _REDIS_BUNDLE_ACTIVATOR_H_
 
-gRPCServerCellConfigReport::gRPCServerCellConfigReport() {}
+#include <iostream>
 
-gRPCServerCellConfigReport::~gRPCServerCellConfigReport() {
-    server->Shutdown();
-    cq->Shutdown();
-}
+#include <celix/dm/DmActivator.h>
+#include <command.h>
 
-gRPCServerCellConfigReport::AbstractCallData::AbstractCallData(gRPCCellConfigReport::gRPCCellConfigReportUpdater::AsyncService* service, grpc::ServerCompletionQueue* cq) : service_(service), cq_(cq), responder_(&ctx_) {}
+#include "../Component/RedisBundleComponent.h"
+
+#define REDIS_BUNDLE_VERSION "1.0.0"
+#define REDIS_BUNDLE_KEY "RedisBundle"
+
+class RedisBundleActivator : public DmActivator {
+    
+    public:
+        RedisBundleActivator(DependencyManager& mng) : DmActivator(mng) {}
+        virtual void init();
+        virtual void deinit();
+
+    protected:
+
+    private:
+};
+
+#endif /* _REDIS_BUNDLE_ACTIVATOR_H_ */

@@ -14,39 +14,32 @@
  * limitations under the License.
  */
 
-#ifndef _GRPCSERVER_H_
-#define _GRPCSERVER_H_
+#ifndef _CELIX_GWCORE_ACTIVATOR_H_
+#define _CELIX_GWCORE_ACTIVATOR_H_
 
 #include <iostream>
-#include <memory>
-#include <thread>
-#include <vector>
 #include <string>
 
-#include <grpcpp/grpcpp.h>
-#include <grpc/support/log.h>
+#include <celix/dm/DmActivator.h>
+#include <command.h>
 
-class gRPCServer {
+#include "../Component/GWCoreComponent.h"
+
+class GWCoreActivator : public DmActivator {
 
     public:
-        gRPCServer();
-        ~gRPCServer();
-        std::string getServerIP();
-        void setServerIP(std::string serverIP);
-        std::string getServerPort();
-        void setServerPort(std::string serverPort);
+        GWCoreActivator(DependencyManager& mng) : DmActivator(mng) {}
+        virtual void init();
+        virtual void deinit();
         
-        virtual void run() = 0;
-        virtual void handleRPCs() = 0;
-        
-
-    private:
+        //for CLI
+        Properties setCmdGwCoreInfoProp(std::string name, std::string usage, std::string desc);
+        std::unique_ptr<GWCoreComponent> setCmdGwCoreInfoFunc(std::unique_ptr<GWCoreComponent> component);
 
     protected:
-        std::string serverIP;
-        std::string serverPort;
-    
+
+    private:
+        command_service_t cmdGwCoreInfo {nullptr, nullptr};
 };
 
-
-#endif /* _GRPCSERVER_H_ */
+#endif /* _CELIX_GWCORE_ACTIVATOR_H_ */
