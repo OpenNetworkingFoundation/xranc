@@ -33,6 +33,9 @@ make
 sudo make install
 ```
 
+#### Install Celix
+Please follow this [link](http://celix.apache.org/docs/celix/documents/building/readme.html)
+
 #### Clone with SSH or HTTPS
 ```
 git clone git@github.com:OpenNetworkingFoundation/xranc.git
@@ -86,6 +89,7 @@ cd ric-api-gw
 mkdir -p build
 cd build
 cmake ..
+make
 cd deploy/ric-api-gw
 ./ric-api-gw
 ```
