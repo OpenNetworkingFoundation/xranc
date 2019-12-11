@@ -46,6 +46,8 @@ GWCoreComponent::notifyEvent(std::string srcBundle, std::string dstBundle, std::
 
     if (hasKey != bundles.end()) {
         hasKey->second->notifyEvent(srcBundle, dstBundle, statements);
+    } else {
+        APIGWLogWARN(logSrv, dstBundle + " is not running or unknown bundles. Please check the name of destination Bundle in " + srcBundle);
     }
 }
 
