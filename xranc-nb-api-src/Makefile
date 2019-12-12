@@ -26,8 +26,10 @@ GRPC_CPP_PLUGIN_PATH = `which $(GRPC_CPP_PLUGIN)`
 PROTOS_PATH = ./protobufs
 PROTOS_SRC = $(wildcard $(PROTOS_PATH)/*.proto)
 PB_DIR_PATH = ./gRPCAPIs/cpp/gRPCPB
-PB_CPP_SRCS = $(addprefix $(PB_DIR_PATH)/, $(basename $(notdir $(PROTOS_SRC))).pb.cc)
-PB_GRPC_SRCS = $(addprefix $(PB_DIR_PATH)/, $(basename $(notdir $(PROTOS_SRC))).grpc.pb.cc)
+#PB_CPP_SRCS = $(addprefix $(PB_DIR_PATH)/, $(basename $(notdir $(PROTOS_SRC))).pb.cc)
+#PB_GRPC_SRCS = $(addprefix $(PB_DIR_PATH)/, $(basename $(notdir $(PROTOS_SRC))).grpc.pb.cc)
+PB_CPP_SRCS = $(addprefix $(PB_DIR_PATH)/, $(notdir $(PROTOS_SRC:.proto=.pb.cc)))
+PB_GRPC_SRCS = $(addprefix $(PB_DIR_PATH)/, $(notdir $(PROTOS_SRC:.proto=.grpc.pb.cc)))
 GRPC_API_PATH = ./gRPCAPIs
 GRPC_API_CPP_PATH = $(GRPC_API_PATH)/cpp
 GRPC_API_SERVERS_SRCS = $(wildcard $(GRPC_API_CPP_PATH)/gRPCServers/*.cpp)

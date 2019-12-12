@@ -97,7 +97,6 @@ void cell_config_request(client_t *client) {
 
 void cell_config_response(XRANCPDU *pdu, client_t *client) {
 
-    // TODO - Update information on Redis DB through NBI - gRPC
     Config* config = Config::Instance();
     std::string redisServerInfo = config->redis_ip_addr + ":" + std::to_string(config->redis_port);
 

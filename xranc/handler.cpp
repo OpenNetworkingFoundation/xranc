@@ -13,12 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <sstream>
+#include <iostream>
+#include <stdio.h>
+#include <iomanip>
 
 #include <arpa/inet.h>
 #include <XRANCPDU.h>
 #include <CRNTI.h>
 #include "client.h"
 #include "logger.h"
+#include "config.h"
+
+#include <gRPCAPIs/cpp/gRPCPB/gRPC-UEAdmissionStatus.grpc.pb.h>
+#include <gRPCAPIs/cpp/gRPCPB/gRPC-UEContextUpdate.grpc.pb.h>
+#include <gRPCAPIs/cpp/gRPCParams/gRPCParam-UEAdmissionStatusMsg.h>
+#include <gRPCAPIs/cpp/gRPCParams/gRPCParam-UEContextUpdateMsg.h>
+#include "gRPCHandlers/gRPCClientImpls/gRPCClientImpl-UEAdmissionStatus.h"
+#include "gRPCHandlers/gRPCClientImpls/gRPCClientImpl-UEContextUpdate.h"
+
 
 void copy_crnti(CRNTI_t *dest, CRNTI_t *src) {
     dest->buf = (uint8_t *)calloc(1, src->size);
@@ -81,15 +94,112 @@ void ue_admission_request(XRANCPDU *pdu, client_t *client) {
 }
 
 void ue_admission_status(XRANCPDU *pdu, client_t *client) {
-    log_debug("-> UEAdmStatus enodeb:{} crnti:{}",
+
+    Config* config = Config::Instance();
+    std::string redisServerInfo = config->redis_ip_addr + ":" + std::to_string(config->redis_port);
+
+    XRANCPDUBody_t payload = pdu->body;
+    UEAdmissionStatus_t body = payload.choice.uEAdmissionStatus;
+
+    // crnti
+    std::string recvCrnti = std::to_string(ntohs(*(uint16_t *)(pdu->body.choice.uEAdmissionStatus.crnti.buf)));
+
+    // ecgi
+    std::string recvPlmnId;
+    for(uint index = 0; index < body.ecgi.pLMN_Identity.size; index++) {
+        std::stringstream stream;
+        stream << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(body.ecgi.pLMN_Identity.buf[index]);
+        recvPlmnId += stream.str();
+    }
+    //ECID
+    std::string recvEcid;
+    for (uint index = 0 ; index < body.ecgi.eUTRANcellIdentifier.size; index++) {
+        for (int bitLoopIndex = 7; bitLoopIndex >= 0; bitLoopIndex--) {
+            recvEcid += ((body.ecgi.eUTRANcellIdentifier.buf[index] >> bitLoopIndex) & 1) ? "1" : "0";
+        }
+    }
+
+    // admissionEstStatus
+    std::string recvAdmissionEstStatus = std::to_string(body.adm_est_status);
+
+    gRPCParamUEAdmissionStatusMsg ueAdmissionStatusMsg(recvCrnti, recvPlmnId, recvEcid);
+    ueAdmissionStatusMsg.setAdmissionEstStatus(recvAdmissionEstStatus);
+
+    log_debug("-> UEAdmStatus enodeb:{} crnti:{} ueAdmEstStatue:{}",
                 pdu->body.choice.uEAdmissionStatus.ecgi.eUTRANcellIdentifier.buf[2],
-                ntohs(*(uint16_t *)(pdu->body.choice.uEAdmissionStatus.crnti.buf)));
+                ntohs(*(uint16_t *)(pdu->body.choice.uEAdmissionStatus.crnti.buf)),
+                std::to_string(body.adm_est_status));
+
+    gRPCClientImplUEAdmissionStatus reportService(grpc::CreateChannel(redisServerInfo, grpc::InsecureChannelCredentials()));
+    int resultCode = reportService.UpdateUEAdmissionStatus(ueAdmissionStatusMsg);
+    if (resultCode != 1) {
+        log_warn("UEAdmissionStatus is not updated well due to a NBI connection problem");
+    }
 }
 
 void ue_context_update(XRANCPDU *pdu, client_t *client) {
+<<<<<<< HEAD
     log_debug("-> UEContextUpdate enodeb:{} crnti:{}",
                 pdu->body.choice.uEContextUpdate.ecgi.eUTRANcellIdentifier.buf[2],
                 ntohs(*(uint16_t *)(pdu->body.choice.uEContextUpdate.crnti.buf)));
+=======
+
+    Config* config = Config::Instance();
+    std::string redisServerInfo = config->redis_ip_addr + ":" + std::to_string(config->redis_port);
+
+    XRANCPDUBody_t payload = pdu->body;
+    UEContextUpdate_t body = payload.choice.uEContextUpdate;
+
+    // crnti
+    std::string recvCrnti = std::to_string(ntohs(*(uint16_t *)(pdu->body.choice.uEAdmissionStatus.crnti.buf)));
+
+    // ecgi
+    // plmnid
+    std::string recvPlmnId;
+    for(uint index = 0; index < body.ecgi.pLMN_Identity.size; index++) {
+        std::stringstream stream;
+        stream << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(body.ecgi.pLMN_Identity.buf[index]);
+        recvPlmnId += stream.str();
+    }
+    //ECID
+    std::string recvEcid;
+    for (uint index = 0 ; index < body.ecgi.eUTRANcellIdentifier.size; index++) {
+        for (int bitLoopIndex = 7; bitLoopIndex >= 0; bitLoopIndex--) {
+            recvEcid += ((body.ecgi.eUTRANcellIdentifier.buf[index] >> bitLoopIndex) & 1) ? "1" : "0";
+        }
+    }
+
+    // mme_ue_s1ap_id
+    std::string recvMmeUeS1apId = std::to_string(body.mME_UE_S1AP_ID);
+
+    // enb_ue_s1ap_id
+    std::string recvEnbUeS1apId = std::to_string(body.eNB_UE_S1AP_ID);
+
+    // imsi
+    std::string recvImsi;
+    for (uint index = 0; index < body.imsi->size; index++) {
+        for (int bitLoopIndex = 7; bitLoopIndex >= 0; bitLoopIndex--) {
+            std::stringstream stream;
+            stream << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(body.imsi->buf[index]);
+            recvImsi += stream.str();
+        }
+    }
+
+    gRPCParamUEContextUpdateMsg ueContext(recvImsi);
+    ueContext.setEcgi(recvPlmnId, recvEcid);
+    ueContext.setCrnti(recvCrnti);
+    ueContext.setMmeUeS1apId(recvMmeUeS1apId);
+    ueContext.setEnbUeS1apId(recvEnbUeS1apId);
+
+    log_info("UECtxUpdate crnti:{} plmnid:{} ecid:{} mme_ue_s1ap_id:{} enb_ue_s1ap_id:{} imsi{}", 
+        recvCrnti, recvEcid, recvMmeUeS1apId, recvEnbUeS1apId, recvImsi);
+
+    gRPCClientImplUEContextUpdate reportService(grpc::CreateChannel(redisServerInfo, grpc::InsecureChannelCredentials()));
+    int resultCode = reportService.UpdateUEContext(ueContext);
+    if (resultCode != 1) {
+        log_warn("UEContextUpdate is not updated well due to a NBI connection problem");
+    }
+>>>>>>> [#35] Add .proto and parameter class for UEContextUpdate and UEAdmissionStatus
 }
 
 void bearer_admission_request(XRANCPDU *pdu, client_t *client) {
