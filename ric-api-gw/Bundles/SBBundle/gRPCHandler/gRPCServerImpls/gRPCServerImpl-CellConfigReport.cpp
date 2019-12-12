@@ -105,7 +105,7 @@ gRPCServerImplCellConfigReport::CallData::proceed() {
         logMsg.str("");
 
         // Packaging CellConfigReport information to std::map
-        std::map<std::string, std::map<std::string, std::string>> statements;
+        std::map<std::string, std::map<std::string, std::string>> message;
         std::map<std::string, std::string> tmpEcgiMap;
         std::map<std::string, std::string> tmpCandScellsMap;
         std::map<std::string, std::string> tmpENBMap;
@@ -113,7 +113,7 @@ gRPCServerImplCellConfigReport::CallData::proceed() {
         // ECGI
         tmpEcgiMap[DB_PLMNID_KEY] = request_.ecgi().plmnid();
         tmpEcgiMap[DB_ECID_KEY] = request_.ecgi().ecid();
-        statements[DB_ECGI_KEY] = tmpEcgiMap;
+        message[DB_ECGI_KEY] = tmpEcgiMap;
         
         // CAND-SCELLS
         for (int index = 0; index < request_.candscells_size(); index++) {
@@ -123,9 +123,9 @@ gRPCServerImplCellConfigReport::CallData::proceed() {
             std::map<std::string, std::string> tmpCandScellMap;
             tmpCandScellMap[DB_PCI_KEY] = request_.candscells(index).pci();
             tmpCandScellMap[DB_EARFCN_DL] = request_.candscells(index).earfcndl();
-            statements[tmpCandScellKey.str()] = tmpCandScellMap;
+            message[tmpCandScellKey.str()] = tmpCandScellMap;
         }
-        statements[DB_CAND_SCELLS_KEY] = tmpCandScellsMap;
+        message[DB_CAND_SCELLS_KEY] = tmpCandScellsMap;
 
         // eNB
         tmpENBMap[DB_ECGI_KEY] = DB_ECGI_KEY;
@@ -142,10 +142,11 @@ gRPCServerImplCellConfigReport::CallData::proceed() {
         tmpENBMap[DB_MAX_NUM_UES_SCHED_PER_TTI_DL] = request_.maxnumuesschedperttidl();
         tmpENBMap[DB_MAX_NUM_UES_SCHED_PER_TTI_UL] = request_.maxnumuesschedperttiul();
         tmpENBMap[DB_DFLS_SCHED_ENABLE] = request_.dlfsschedenable();
-        statements[DB_ENB_KEY] = tmpENBMap;
+        message[DB_ENB_KEY] = tmpENBMap;
 
-        gwCoreComponent_->notifyEvent(SB_BUNDLE_KEY, REDIS_BUNDLE_KEY, statements);
-
+        gwCoreComponent_->notifyEvent(SB_BUNDLE_KEY, REDIS_BUNDLE_KEY, message);
+        gwCoreComponent_->notifyEvent(SB_BUNDLE_KEY, ONOS_BUNDLE_KEY, message);
+        
         new CallData (service_, cq_, gwCoreComponent_, logSrv_);
         status_ = FINISH;
         responder_.Finish(reply_, grpc::Status::OK, this);

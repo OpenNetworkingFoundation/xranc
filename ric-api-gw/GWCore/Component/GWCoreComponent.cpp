@@ -37,7 +37,7 @@ GWCoreComponent::deinit() {
 }
 
 void
-GWCoreComponent::notifyEvent(std::string srcBundle, std::string dstBundle, std::map<std::string, std::map<std::string, std::string>> statements) {
+GWCoreComponent::notifyEvent(std::string srcBundle, std::string dstBundle, std::map<std::string, std::map<std::string, std::string>> message) {
     std::string notifyResult = "SRC: " + srcBundle + " DST: " + dstBundle;
     APIGWLogDEBUG(logSrv, notifyResult);
 
@@ -45,7 +45,7 @@ GWCoreComponent::notifyEvent(std::string srcBundle, std::string dstBundle, std::
     std::map<std::string, AbstractBundleComponent*>::iterator hasKey = bundles.find(dstBundle);
 
     if (hasKey != bundles.end()) {
-        hasKey->second->notifyEvent(srcBundle, dstBundle, statements);
+        hasKey->second->notifyEvent(srcBundle, dstBundle, message);
     } else {
         APIGWLogWARN(logSrv, dstBundle + " is not running or unknown bundles. Please check the name of destination Bundle in " + srcBundle);
     }

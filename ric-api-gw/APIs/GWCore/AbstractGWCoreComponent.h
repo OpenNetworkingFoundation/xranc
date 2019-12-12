@@ -30,7 +30,7 @@ class AbstractGWCoreComponent {
     public:
         AbstractGWCoreComponent() = default;
         ~AbstractGWCoreComponent() = default;
-        virtual void notifyEvent(std::string srcBundle, std::string dstBundle, std::map<std::string, std::map<std::string, std::string>> statements) = 0;
+        virtual void notifyEvent(std::string srcBundle, std::string dstBundle, std::map<std::string, std::map<std::string, std::string>> message) = 0;
         virtual void registerBundle(std::string key, AbstractBundleComponent* bundleComponent) = 0;
         virtual void unregisterBundle(std::string key) = 0;
         std::map<std::string, AbstractBundleComponent*> getBundles() {
