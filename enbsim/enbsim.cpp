@@ -69,7 +69,7 @@ static void readcb(struct bufferevent *bev, void *arg)
 
     while (evbuffer_get_length(input)) {
         int n = evbuffer_remove(input, ctx->data + ctx->nbytes, sizeof(ctx->data) - ctx->nbytes);
-        log_info("removed {} bytes", n);
+        //log_info("removed {} bytes", n);
         ctx->nbytes += n;
     }
 
