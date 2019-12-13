@@ -24,8 +24,7 @@ SBBundleComponent::setLogService(const log_service_t* logSrv) {
 }
 
 void
-SBBundleComponent::notifyEvent(std::string srcBundle, std::string dstBundle, std::map<std::string, std::map<std::string, std::string>> statements) {
-    std::cout << "SBBundleComponent - notifyEvent" << std::endl;
+SBBundleComponent::notifyEvent(std::string srcBundle, std::string dstBundle, std::map<std::string, std::map<std::string, std::string>> message) {
     APIGWLogINFO(this->logSrv, "SBBundleComponent - notifyEvent");
 }
 
@@ -106,8 +105,8 @@ SBBundleComponent::deinit() {
     std::cout << "SBBundleComponent - deinit" << std::endl;
 }
 
- void
- SBBundleComponent::setGWCoreComponent(AbstractGWCoreComponent* gwcore) {
+void
+SBBundleComponent::setGWCoreComponent(AbstractGWCoreComponent* gwcore) {
     this->gwCoreComponent = gwcore;
 }
 

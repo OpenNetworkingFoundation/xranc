@@ -59,6 +59,7 @@ endforeach()
 add_subdirectory(GWCore)
 add_subdirectory(Bundles/SBBundle)
 add_subdirectory(Bundles/RedisBundle)
+add_subdirectory(Bundles/ONOSBundle)
 add_celix_container(ric-api-gw
         CXX
         BUNDLES
@@ -70,6 +71,7 @@ add_celix_container(ric-api-gw
                 GWCore
                 SBBundle
                 RedisBundle
+                ONOSBundle
         PROPERTIES
             LOGHELPER_ENABLE_STDOUT_FALLBACK=true
             BUILD_REMOTE_SHELL=ON

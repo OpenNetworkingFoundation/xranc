@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-#ifndef _CELIX_SB_BUNDLE_COMPONENT_H_
-#define _CELIX_SB_BUNDLE_COMPONENT_H_
+#ifndef _CELIX_ONOS_BUNDLE_COMPONENT_H_
+#define _CELIX_ONOS_BUNDLE_COMPONENT_H_
 
 #include <iostream>
 #include <string>
 #include <sstream>
-#include <thread>
 
 #include <log_service.h>
 #include <log_helper.h>
@@ -29,18 +28,14 @@
 
 #include "../../../APIs/Bundles/AbstractBundleComponent.h"
 #include "../../../APIs/GWCore/AbstractGWCoreComponent.h"
-#include "../Activator/SBBundleActivator.h"
+#include "../Activator/ONOSBundleActivator.h"
 #include "../../../APIs/Common/APIGwLogServiceWrapper.h"
-#include "../gRPCHandler/gRPCServerImpls/gRPCServerImpl-CellConfigReport.h"
 
-#define GRPC_SB_IP "127.0.0.1"
-#define GRPC_SB_PORT "50002"
-
-class SBBundleComponent : public AbstractBundleComponent {
+class ONOSBundleComponent : AbstractBundleComponent {
 
     public:
-        SBBundleComponent() = default;
-        ~SBBundleComponent() = default;
+        ONOSBundleComponent() = default;
+        ~ONOSBundleComponent() = default;
 
         void setLogService(const log_service_t* logSrv);
         void notifyEvent(std::string srcBundle, std::string dstBundle, std::map<std::string, std::map<std::string, std::string>> message);
@@ -52,22 +47,17 @@ class SBBundleComponent : public AbstractBundleComponent {
         void stop();
         void deinit();
 
-        // for gRPC
-        void runGRPCServer();
-        void killGRPCServer();
+        // for gRPC to send CellConfigReport
+        int updateCellConfig(std::map<std::string, std::map<std::string, std::string>> message);
 
         void setGWCoreComponent(AbstractGWCoreComponent* gwcore);
         AbstractGWCoreComponent* getGWCoreComponent();
-        
+
     protected:
 
     private:
-        gRPCServerCellConfigReport* service {nullptr};
         AbstractGWCoreComponent* gwCoreComponent {nullptr};
-        std::thread* th1 {nullptr};
         const log_service_t* logSrv {nullptr};
 };
 
-
-
-#endif /* _CELIX_SB_BUNDLE_COMPONENT_H_ */
+#endif /* _CELIX_ONOS_BUNDLE_COMPONENT_H_ */

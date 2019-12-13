@@ -66,8 +66,4 @@ gRPCClientImplCellConfigReport::UpdateCellConfig(gRPCParamCellConfigReportMsg ce
     } else {
         return 0;
     }
-
-    //delete variables
-    delete ecgi;
-    cellConfigValues.clear_candscells();
 }
