@@ -35,7 +35,7 @@ gRPCServerImplCellConfigReport::run() {
     builder.RegisterService(&service);
     cq = builder.AddCompletionQueue();
     server = builder.BuildAndStart();
-    APIGWLogINFO(this->logSrv, "Server listening on " + serverInfo);
+    APIGWLogINFO(this->logSrv, "Server listening on " + serverInfo + " for CellConfigReport");
     handleRPCs();
 }
 
@@ -49,7 +49,7 @@ gRPCServerImplCellConfigReport::handleRPCs() {
         //GPR_ASSERT(ok);
         cq->Next(&tag, &ok);
         if (!ok) {
-            APIGWLogWARN(logSrv, "gRPC server is shutting down gracefully");
+            APIGWLogWARN(logSrv, "gRPC server for CellConfigReport is shutting down gracefully");
             break;
         }
         static_cast<CallData*>(tag)->proceed();
@@ -142,6 +142,7 @@ gRPCServerImplCellConfigReport::CallData::proceed() {
         tmpENBMap[DB_MAX_NUM_UES_SCHED_PER_TTI_DL] = request_.maxnumuesschedperttidl();
         tmpENBMap[DB_MAX_NUM_UES_SCHED_PER_TTI_UL] = request_.maxnumuesschedperttiul();
         tmpENBMap[DB_DFLS_SCHED_ENABLE] = request_.dlfsschedenable();
+        tmpENBMap[DB_UE_LIST_IN_ENB] = DB_UE_LIST_IN_ENB; // to show UE list - it is not a value in CellConfigReport message
         message[DB_ENB_KEY] = tmpENBMap;
 
         gwCoreComponent_->notifyEvent(SB_BUNDLE_KEY, REDIS_BUNDLE_KEY, message);
@@ -153,7 +154,7 @@ gRPCServerImplCellConfigReport::CallData::proceed() {
     } else {
         //GPR_ASSERT(status_ == FINISH);
         if (status_ != FINISH) {
-            APIGWLogWARN(logSrv_, "gRPC server state machine has an error - undefined status");
+            APIGWLogWARN(logSrv_, "gRPC server state machine for CellConfigReport has an error - undefined status");
         }
         delete this;
     }

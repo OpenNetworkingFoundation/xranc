@@ -154,6 +154,8 @@ RedisBundleComponent::updateCellConfigReport(std::map<std::string, std::map<std:
     // push eNB
     std::stringstream tmpENBKey;
     tmpENBKey << DB_ENB_KEY << ":" << tmpEcgiKey.str();
+    std::stringstream tmpUEListKey;
+    tmpUEListKey << DB_UE_LIST_IN_ENB << ":" << tmpENBKey.str();
     std::stringstream queryENB;
     queryENB << "hmset " << tmpENBKey.str() << " " << DB_ECGI_KEY << " " << tmpEcgiKey.str() << " " << DB_PCI_KEY << " " << message.at(DB_ENB_KEY).at(DB_PCI_KEY)
         << " " << DB_CAND_SCELLS_KEY << " " << tmpCandScellsKey.str() << " " << DB_EARFCN_DL << " " << message.at(DB_ENB_KEY).at(DB_EARFCN_DL)
@@ -164,7 +166,7 @@ RedisBundleComponent::updateCellConfigReport(std::map<std::string, std::map<std:
         << " " << DB_MAX_NUM_CONNECTED_BEARERS << " " << message.at(DB_ENB_KEY).at(DB_MAX_NUM_CONNECTED_BEARERS) << " " << DB_MAX_NUM_UES_SCHED_PER_TTI_DL
         << " " << message.at(DB_ENB_KEY).at(DB_MAX_NUM_UES_SCHED_PER_TTI_DL) << " " << DB_MAX_NUM_UES_SCHED_PER_TTI_UL
         << " " << message.at(DB_ENB_KEY).at(DB_MAX_NUM_UES_SCHED_PER_TTI_UL) << " " << DB_DFLS_SCHED_ENABLE 
-        << " " << message.at(DB_ENB_KEY).at(DB_DFLS_SCHED_ENABLE);
+        << " " << message.at(DB_ENB_KEY).at(DB_DFLS_SCHED_ENABLE) << " " << DB_UE_LIST_IN_ENB << " " << tmpUEListKey.str();
         reply = (redisReply*)redisCommand(context, queryENB.str().c_str());
     freeReplyObject(reply);
     queryENB.str("");

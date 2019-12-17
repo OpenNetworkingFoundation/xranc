@@ -62,10 +62,7 @@
 #define DB_MAX_NUM_UES_SCHED_PER_TTI_DL "MAX-NUM-UES-SCHED-PER-TTI-DL" // values in eNB
 #define DB_MAX_NUM_UES_SCHED_PER_TTI_UL "MAX-NUM-UES-SCHED-PER-TTI-UL" // values in eNB
 #define DB_DFLS_SCHED_ENABLE "DFLS-SCHED-ENABLE" // values in eNB
-
-#define DB_KEY_PREFIX_ECGI "ECGI"
-#define DB_KEY_PREFIX_ENB "eNB" // + ECGI
-#define DB_KEY_PREFIX_CAND_SCELL "CAND-SCELL" // + ECGI
+#define DB_UE_LIST_IN_ENB "UES"
 
 class gRPCServerImplCellConfigReport final : public gRPCServerCellConfigReport {
     

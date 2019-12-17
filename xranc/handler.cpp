@@ -96,7 +96,7 @@ void ue_admission_request(XRANCPDU *pdu, client_t *client) {
 void ue_admission_status(XRANCPDU *pdu, client_t *client) {
 
     Config* config = Config::Instance();
-    std::string redisServerInfo = config->redis_ip_addr + ":" + std::to_string(config->redis_port);
+    std::string redisServerInfo = config->redis_ip_addr + ":" + GRPC_SB_UEADMSTAT_PORT;
 
     XRANCPDUBody_t payload = pdu->body;
     UEAdmissionStatus_t body = payload.choice.uEAdmissionStatus;
@@ -125,15 +125,17 @@ void ue_admission_status(XRANCPDU *pdu, client_t *client) {
     gRPCParamUEAdmissionStatusMsg ueAdmissionStatusMsg(recvCrnti, recvPlmnId, recvEcid);
     ueAdmissionStatusMsg.setAdmissionEstStatus(recvAdmissionEstStatus);
 
-    log_debug("-> UEAdmStatus enodeb:{} crnti:{} ueAdmEstStatue:{}",
+    log_debug("-> UEAdmStatus enodeb:{} crnti:{} ueAdmEstStatus:{}",
                 pdu->body.choice.uEAdmissionStatus.ecgi.eUTRANcellIdentifier.buf[2],
                 ntohs(*(uint16_t *)(pdu->body.choice.uEAdmissionStatus.crnti.buf)),
                 std::to_string(body.adm_est_status));
 
-    gRPCClientImplUEAdmissionStatus reportService(grpc::CreateChannel(redisServerInfo, grpc::InsecureChannelCredentials()));
-    int resultCode = reportService.UpdateUEAdmissionStatus(ueAdmissionStatusMsg);
-    if (resultCode != 1) {
-        log_warn("UEAdmissionStatus is not updated well due to a NBI connection problem");
+    if (recvAdmissionEstStatus.compare("0")) { // ueAdmEststatus == 0 - successful
+        gRPCClientImplUEAdmissionStatus reportService(grpc::CreateChannel(redisServerInfo, grpc::InsecureChannelCredentials()));
+        int resultCode = reportService.UpdateUEAdmissionStatus(ueAdmissionStatusMsg);
+        if (resultCode != 1) {
+            log_warn("UEAdmissionStatus is not updated well due to a NBI connection problem");
+        }
     }
 }
 
@@ -145,7 +147,7 @@ void ue_context_update(XRANCPDU *pdu, client_t *client) {
 =======
 
     Config* config = Config::Instance();
-    std::string redisServerInfo = config->redis_ip_addr + ":" + std::to_string(config->redis_port);
+    std::string redisServerInfo = config->redis_ip_addr + ":" + GRPC_SB_UECONTEXTUPDATE_PORT;
 
     XRANCPDUBody_t payload = pdu->body;
     UEContextUpdate_t body = payload.choice.uEContextUpdate;

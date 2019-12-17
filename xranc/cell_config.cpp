@@ -98,7 +98,7 @@ void cell_config_request(client_t *client) {
 void cell_config_response(XRANCPDU *pdu, client_t *client) {
 
     Config* config = Config::Instance();
-    std::string redisServerInfo = config->redis_ip_addr + ":" + std::to_string(config->redis_port);
+    std::string redisServerInfo = config->redis_ip_addr + ":" + GRPC_SB_CELLCONFIG_PORT;
 
     XRANCPDUBody_t payload = pdu->body;
     CellConfigReport_t body = payload.choice.cellConfigReport;

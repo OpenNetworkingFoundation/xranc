@@ -20,6 +20,11 @@
 #include <string>
 #include <map>
 
+// Hardcoded: Must be removed!
+#define GRPC_SB_CELLCONFIG_PORT "50002"
+#define GRPC_SB_UEADMSTAT_PORT "50003"
+#define GRPC_SB_UECONTEXTUPDATE_PORT "50004"
+
 using namespace std;
 
 struct Cell {
