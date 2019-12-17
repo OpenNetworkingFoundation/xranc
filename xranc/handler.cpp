@@ -87,7 +87,9 @@ void ue_admission_status(XRANCPDU *pdu, client_t *client) {
 }
 
 void ue_context_update(XRANCPDU *pdu, client_t *client) {
-    // TODO
+    log_debug("-> UEContextUpdate enodeb:{} crnti:{}",
+                pdu->body.choice.uEContextUpdate.ecgi.eUTRANcellIdentifier.buf[2],
+                ntohs(*(uint16_t *)(pdu->body.choice.uEContextUpdate.crnti.buf)));
 }
 
 void bearer_admission_request(XRANCPDU *pdu, client_t *client) {
