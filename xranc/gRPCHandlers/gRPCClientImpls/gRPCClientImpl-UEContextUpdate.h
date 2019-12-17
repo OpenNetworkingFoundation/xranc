@@ -27,9 +27,7 @@ using grpc::ClientContext;
 using grpc::CompletionQueue;
 using grpc::Status;
 using gRPCUEContextUpdate::gRPCUEContextUpdater;
-using gRPCUEContextUpdate::gMsgECGI;
 using gRPCUEContextUpdate::gMsgUEContextValues;
-using gRPCUEContextUpdate::gMsgResults;
 
 class gRPCClientImplUEContextUpdate : public gRPCClientUEContextUpdate {
 

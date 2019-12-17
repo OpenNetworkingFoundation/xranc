@@ -64,7 +64,7 @@ gRPCServerImplUEContextUpdate::CallData::CallData(gRPCUEContextUpdate::gRPCUECon
     proceed();
 }
 
-gRPCServerImplUEContextUpdate::CallData::CallData(gRPCUEContextUpdate::gRPCUEContextUpdater::AsyncService* service, grpc::ServerCompletionQueue* cq, AbstractGWCoreComponent* gwCoreComponent, const log_service_t* logSrv) : AbstractCallData(service, cq), status_(CREATE), gwCoreComponent_(gwCoreComponent) {
+gRPCServerImplUEContextUpdate::CallData::CallData(gRPCUEContextUpdate::gRPCUEContextUpdater::AsyncService* service, grpc::ServerCompletionQueue* cq, AbstractGWCoreComponent* gwCoreComponent) : AbstractCallData(service, cq), status_(CREATE), gwCoreComponent_(gwCoreComponent) {
 
 }
 
@@ -76,7 +76,7 @@ gRPCServerImplUEContextUpdate::CallData::proceed() {
     } else if (status_ == PROCESS_UPDATEUECONTEXT) {
         std::stringstream logMsg;
         logMsg << "RIC SB reports received UEContextUpdate Message (IMSI: " << request_.imsi() << ", C-RNTI: "
-            << request_.crnti() << ", PLMNID: " << request_.ecgi().plmnid << ", ECID: " << request_.ecgi().ecid()
+            << request_.crnti() << ", PLMNID: " << request_.ecgi().plmnid() << ", ECID: " << request_.ecgi().ecid()
             << ", MME_UE_S1AP_ID: " << request_.mmeues1apid() << ", ENB_UE_S1AP_ID: " << request_.enbues1apid() << ")";
         APIGWLogINFO(logSrv_, logMsg.str().c_str());
 
@@ -97,8 +97,8 @@ gRPCServerImplUEContextUpdate::CallData::proceed() {
         tmpUEMap[DB_IMSI_KEY] = request_.imsi();
         message[DB_UE_KEY] = tmpUEMap;
 
-        gwCoreComponent_->notifyEvent(SB_BUNDLE_KEY, REDIS_BUNDLE_KEY, message);
-        gwCoreComponent_->notifyEvent(SB_BUNDLE_KEY, ONOS_BUNDLE_KEY, message);
+        gwCoreComponent_->notifyEvent(SB_BUNDLE_UECONTEXTUPDATE_KEY, REDIS_BUNDLE_KEY, message);
+        gwCoreComponent_->notifyEvent(SB_BUNDLE_UECONTEXTUPDATE_KEY, ONOS_BUNDLE_KEY, message);
 
         new CallData(service_, cq_, gwCoreComponent_, logSrv_);
         status_ = FINISH;

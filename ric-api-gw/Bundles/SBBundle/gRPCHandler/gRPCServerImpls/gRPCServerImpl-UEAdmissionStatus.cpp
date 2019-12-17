@@ -64,7 +64,7 @@ gRPCServerImplUEAdmissionStatus::CallData::CallData(gRPCUEAdmissionStatus::gRPCU
     proceed();
 }
 
-gRPCServerImplUEAdmissionStatus::CallData::CallData(gRPCUEAdmissionStatus::gRPCUEAdmissionStatusUpdater::AsyncService* service, grpc::ServerCompletionQueue* cq, AbstractGWCoreComponent* gwCoreComponent, const log_service_t* logSrv) : AbstractCallData(service, cq), status_(CREATE), gwCoreComponent_(gwCoreComponent) {
+gRPCServerImplUEAdmissionStatus::CallData::CallData(gRPCUEAdmissionStatus::gRPCUEAdmissionStatusUpdater::AsyncService* service, grpc::ServerCompletionQueue* cq, AbstractGWCoreComponent* gwCoreComponent) : AbstractCallData(service, cq), status_(CREATE), gwCoreComponent_(gwCoreComponent) {
 
 }
 
@@ -93,8 +93,8 @@ gRPCServerImplUEAdmissionStatus::CallData::proceed() {
         tmpUEMap[DB_CRNTI_KEY] = request_.crnti();
         message[DB_UE_KEY] = tmpUEMap;
 
-        gwCoreComponent_->notifyEvent(SB_BUNDLE_KEY, REDIS_BUNDLE_KEY, message);
-        gwCoreComponent_->notifyEvent(SB_BUNDLE_KEY, ONOS_BUNDLE_KEY, message);
+        gwCoreComponent_->notifyEvent(SB_BUNDLE_UEADMISSIONSTATUS_KEY, REDIS_BUNDLE_KEY, message);
+        gwCoreComponent_->notifyEvent(SB_BUNDLE_UEADMISSIONSTATUS_KEY, ONOS_BUNDLE_KEY, message);
 
         new CallData(service_, cq_, gwCoreComponent_, logSrv_);
         status_ = FINISH;

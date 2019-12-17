@@ -140,11 +140,6 @@ void ue_admission_status(XRANCPDU *pdu, client_t *client) {
 }
 
 void ue_context_update(XRANCPDU *pdu, client_t *client) {
-<<<<<<< HEAD
-    log_debug("-> UEContextUpdate enodeb:{} crnti:{}",
-                pdu->body.choice.uEContextUpdate.ecgi.eUTRANcellIdentifier.buf[2],
-                ntohs(*(uint16_t *)(pdu->body.choice.uEContextUpdate.crnti.buf)));
-=======
 
     Config* config = Config::Instance();
     std::string redisServerInfo = config->redis_ip_addr + ":" + GRPC_SB_UECONTEXTUPDATE_PORT;
@@ -180,11 +175,7 @@ void ue_context_update(XRANCPDU *pdu, client_t *client) {
     // imsi
     std::string recvImsi;
     for (uint index = 0; index < body.imsi->size; index++) {
-        for (int bitLoopIndex = 7; bitLoopIndex >= 0; bitLoopIndex--) {
-            std::stringstream stream;
-            stream << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(body.imsi->buf[index]);
-            recvImsi += stream.str();
-        }
+        recvImsi += body.imsi->buf[index];
     }
 
     gRPCParamUEContextUpdateMsg ueContext(recvImsi);
@@ -193,15 +184,14 @@ void ue_context_update(XRANCPDU *pdu, client_t *client) {
     ueContext.setMmeUeS1apId(recvMmeUeS1apId);
     ueContext.setEnbUeS1apId(recvEnbUeS1apId);
 
-    log_info("UECtxUpdate crnti:{} plmnid:{} ecid:{} mme_ue_s1ap_id:{} enb_ue_s1ap_id:{} imsi{}", 
-        recvCrnti, recvEcid, recvMmeUeS1apId, recvEnbUeS1apId, recvImsi);
+    log_info("-> UEContextUpdate crnti:{} plmnid:{} ecid:{} mme_ue_s1ap_id:{} enb_ue_s1ap_id:{} imsi:{}", 
+        recvCrnti, recvPlmnId, recvEcid, recvMmeUeS1apId, recvEnbUeS1apId, recvImsi);
 
     gRPCClientImplUEContextUpdate reportService(grpc::CreateChannel(redisServerInfo, grpc::InsecureChannelCredentials()));
     int resultCode = reportService.UpdateUEContext(ueContext);
     if (resultCode != 1) {
         log_warn("UEContextUpdate is not updated well due to a NBI connection problem");
     }
->>>>>>> [#35] Add .proto and parameter class for UEContextUpdate and UEAdmissionStatus
 }
 
 void bearer_admission_request(XRANCPDU *pdu, client_t *client) {

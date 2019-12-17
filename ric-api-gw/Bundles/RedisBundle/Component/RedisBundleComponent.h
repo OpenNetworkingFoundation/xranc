@@ -61,6 +61,8 @@ class RedisBundleComponent : public AbstractBundleComponent {
 
         // for Redis access
         void updateCellConfigReport(std::map<std::string, std::map<std::string, std::string>> message);
+        void updateUEAdmissionStatus(std::map<std::string, std::map<std::string, std::string>> message);
+        void updateUEContextUpdate(std::map<std::string, std::map<std::string, std::string>> message);
 
     protected:
 

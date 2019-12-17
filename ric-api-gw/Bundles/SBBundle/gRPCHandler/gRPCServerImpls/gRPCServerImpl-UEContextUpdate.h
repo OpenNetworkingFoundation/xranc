@@ -30,9 +30,9 @@
 #include <gRPCAPIs/cpp/gRPCServers/gRPCServer-UEContextUpdate.h>
 #include <gRPCAPIs/cpp/gRPCPB/gRPC-UEContextUpdate.grpc.pb.h>
 
-#include "Common/APIGwLogServiceWrapper.h"
-#include "SBBundleComponent.h"
-#include "GWCore/AbstractGWCoreComponent.h"
+#include "../../../../APIs/Common/APIGwLogServiceWrapper.h"
+#include "../../Component/SBBundleComponent.h"
+#include "../../../../APIs/GWCore/AbstractGWCoreComponent.h"
 #include "../../../RedisBundle/Activator/RedisBundleActivator.h"
 #include "../../../ONOSBundle/Activator/ONOSBundleActivator.h"
 
@@ -48,6 +48,7 @@
 #define DB_MME_UE_S1AP_ID_KEY "MME-UE-S1AP-ID"
 #define DB_ENB_UE_S1AP_ID_KEY "ENB-UE-S1AP-ID"
 #define DB_IMSI_KEY "IMSI"
+#define DB_UE_INFO_KEY "UE-INFO"
 
 class gRPCServerImplUEContextUpdate final : public gRPCServerUEContextUpdate {
 

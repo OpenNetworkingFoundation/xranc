@@ -27,7 +27,18 @@ void
 RedisBundleComponent::notifyEvent(std::string srcBundle, std::string dstBundle, std::map<std::string, std::map<std::string, std::string>> message) {
     std::string notifyResult = "SRC: " + srcBundle + " DST: " + dstBundle;
     APIGWLogDEBUG(logSrv, notifyResult);
-    updateCellConfigReport(message);
+
+    if (std::strcmp(srcBundle.c_str(), SB_BUNDLE_CELLCONFIGREPORT_KEY) == 0) {
+        updateCellConfigReport(message);
+    } else if (std::strcmp(srcBundle.c_str(), SB_BUNDLE_UEADMISSIONSTATUS_KEY)  == 0) {
+        updateUEAdmissionStatus(message);
+    } else if (std::strcmp(srcBundle.c_str(), SB_BUNDLE_UECONTEXTUPDATE_KEY)  == 0) {
+        updateUEContextUpdate(message);
+    } else {
+        std::stringstream logMsg;
+        logMsg << srcBundle << " is not available in RedisBundle; please check whether bundle name is correct";
+        APIGWLogWARN(logSrv, logMsg.str());
+    }
 }
 
 void
@@ -100,7 +111,7 @@ RedisBundleComponent::getGWCoreComponent() {
 
 void
 RedisBundleComponent::updateCellConfigReport(std::map<std::string, std::map<std::string, std::string>> message) {
-    
+
     struct timeval timeout = {REDIS_TIMEOUT_SEC, REDIS_TIMOUET_USEC};
     redisContext* context = redisConnectWithTimeout(REDIS_DB_IP, REDIS_DB_PORT, timeout);
 
@@ -165,14 +176,133 @@ RedisBundleComponent::updateCellConfigReport(std::map<std::string, std::map<std:
         << " " << message.at(DB_ENB_KEY).at(DB_DUPLEX_MODE) << " " << DB_MAX_NUM_CONNECTED_UES << " " << message.at(DB_ENB_KEY).at(DB_MAX_NUM_CONNECTED_UES)
         << " " << DB_MAX_NUM_CONNECTED_BEARERS << " " << message.at(DB_ENB_KEY).at(DB_MAX_NUM_CONNECTED_BEARERS) << " " << DB_MAX_NUM_UES_SCHED_PER_TTI_DL
         << " " << message.at(DB_ENB_KEY).at(DB_MAX_NUM_UES_SCHED_PER_TTI_DL) << " " << DB_MAX_NUM_UES_SCHED_PER_TTI_UL
-        << " " << message.at(DB_ENB_KEY).at(DB_MAX_NUM_UES_SCHED_PER_TTI_UL) << " " << DB_DFLS_SCHED_ENABLE 
+        << " " << message.at(DB_ENB_KEY).at(DB_MAX_NUM_UES_SCHED_PER_TTI_UL) << " " << DB_DFLS_SCHED_ENABLE
         << " " << message.at(DB_ENB_KEY).at(DB_DFLS_SCHED_ENABLE) << " " << DB_UE_LIST_IN_ENB << " " << tmpUEListKey.str();
-        reply = (redisReply*)redisCommand(context, queryENB.str().c_str());
+    reply = (redisReply*)redisCommand(context, queryENB.str().c_str());
     freeReplyObject(reply);
     queryENB.str("");
     queryENB << "sadd " << DB_ENB_LIST << " " << tmpENBKey.str();
     reply = (redisReply*)redisCommand(context, queryENB.str().c_str());
     freeReplyObject(reply);
+
+    redisFree(context);
+}
+
+void
+RedisBundleComponent::updateUEAdmissionStatus(std::map<std::string, std::map<std::string, std::string>> message) {
+
+    struct timeval timeout = {REDIS_TIMEOUT_SEC, REDIS_TIMOUET_USEC};
+    redisContext* context = redisConnectWithTimeout(REDIS_DB_IP, REDIS_DB_PORT, timeout);
+
+    if (context == NULL && context->err) {
+        if (context) {
+            std::stringstream errorMsg;
+            errorMsg << "Connection Error: " << context->errstr;
+            APIGWLogERROR(logSrv, errorMsg.str());
+        } else {
+            APIGWLogERROR(logSrv, "Connection Error: Cannot allocate redis context");
+        }
+    }
+
+    // ECGI key
+    std::stringstream tmpEcgiKey;
+    tmpEcgiKey << DB_ECGI_KEY << ":" << message.at(DB_ECGI_KEY).at(DB_PLMNID_KEY) << "+" << message.at(DB_ECGI_KEY).at(DB_ECID_KEY);
+
+    // get C-RNTI 
+    std::string tmpCrnti = message.at(DB_UE_KEY).at(DB_CRNTI_KEY);
+    
+    // get UE key
+    std::stringstream tmpUEKey;
+    tmpUEKey << DB_UE_KEY << ":" << tmpCrnti << "+" << tmpEcgiKey.str();
+
+    // get UE list key in eNB
+    std::stringstream tmpUEsInEnb;
+    tmpUEsInEnb << DB_UE_LIST_IN_ENB << ":" << DB_ENB_KEY << ":" << tmpEcgiKey.str();
+
+    // push UE info
+    std::stringstream tmpQuery;
+    tmpQuery << "hmset " << tmpUEKey.str() << " " << DB_CRNTI_KEY << " " << tmpCrnti << " " << DB_ECGI_KEY
+        << " " << tmpEcgiKey.str() << " " << DB_UE_INFO_KEY << " nil";
+    redisReply* reply = (redisReply*)redisCommand(context, tmpQuery.str().c_str());
+    freeReplyObject(reply);
+    tmpQuery.str("");
+
+    // push UE key to UE list in eNB
+    tmpQuery << "sadd " << tmpUEsInEnb.str() << " " << tmpUEKey.str();
+    reply = (redisReply*)redisCommand(context, tmpQuery.str().c_str());
+    freeReplyObject(reply);
+    
+    redisFree(context);
+}
+
+void
+RedisBundleComponent::updateUEContextUpdate(std::map<std::string, std::map<std::string, std::string>> message) {
+
+    struct timeval timeout = {REDIS_TIMEOUT_SEC, REDIS_TIMOUET_USEC};
+    redisContext* context = redisConnectWithTimeout(REDIS_DB_IP, REDIS_DB_PORT, timeout);
+
+    if (context == NULL && context->err) {
+        if (context) {
+            std::stringstream errorMsg;
+            errorMsg << "Connection Error: " << context->errstr;
+            APIGWLogERROR(logSrv, errorMsg.str());
+        } else {
+            APIGWLogERROR(logSrv, "Connection Error: Cannot allocate redis context");
+        }
+    }
+
+    // ECGI key
+    std::stringstream tmpEcgiKey;
+    tmpEcgiKey << DB_ECGI_KEY << ":" << message.at(DB_ECGI_KEY).at(DB_PLMNID_KEY) << "+" << message.at(DB_ECGI_KEY).at(DB_ECID_KEY);
+
+    // get UE list key in eNB
+    std::stringstream tmpUEsInEnb;
+    tmpUEsInEnb << DB_UE_LIST_IN_ENB << ":" << DB_ENB_KEY << ":" << tmpEcgiKey.str();
+
+    // get C-RNTI
+    std::string tmpCrnti = message.at(DB_UE_KEY).at(DB_CRNTI_KEY);
+    // get MME_UE_S1AP_ID
+    std::string tmpMmeUeS1apId = message.at(DB_UE_KEY).at(DB_MME_UE_S1AP_ID_KEY);
+    // get ENB_UE_S1AP_ID
+    std::string tmpEnbUeS1apId = message.at(DB_UE_KEY).at(DB_ENB_UE_S1AP_ID_KEY);
+    // get IMSI
+    std::string tmpImsi = message.at(DB_UE_KEY).at(DB_IMSI_KEY);
+
+    // get UE key - C-RNTI key
+    std::stringstream tmpUECrntiKey;
+    tmpUECrntiKey << DB_UE_KEY << ":" << tmpCrnti << "+" << tmpEcgiKey.str();
+
+    // get UE Key - IMSI key
+    std::stringstream tmpUEImsiKey;
+    tmpUEImsiKey << DB_UE_KEY << ":" << DB_IMSI_KEY << ":" << tmpImsi;
+
+    // push UE info - C-RNTI key
+    std::stringstream tmpQuery;
+    tmpQuery << "hmset " << tmpUECrntiKey.str() << " " << DB_CRNTI_KEY << " " << tmpCrnti << " " << DB_ECGI_KEY
+        << " " << tmpEcgiKey.str() << " " << DB_UE_INFO_KEY << " " << tmpUEImsiKey.str();
+    redisReply* reply = (redisReply*)redisCommand(context, tmpQuery.str().c_str());
+    freeReplyObject(reply);
+    tmpQuery.str("");
+
+    // push UE info - IMSI key
+    tmpQuery << "hmset " << tmpUEImsiKey.str() << " " << DB_IMSI_KEY << " " << tmpImsi << " " << DB_CRNTI_KEY
+     << " " << tmpCrnti << " " << DB_ECGI_KEY << " " << tmpEcgiKey.str() << " " << DB_MME_UE_S1AP_ID_KEY
+     << " " << tmpMmeUeS1apId << " " << DB_ENB_UE_S1AP_ID_KEY << " " << tmpEnbUeS1apId;
+    reply = (redisReply*)redisCommand(context, tmpQuery.str().c_str());
+    freeReplyObject(reply);
+    tmpQuery.str("");
+
+    // push UE key to UE list in eNB
+    tmpQuery << "sadd " << tmpUEsInEnb.str() << " " << tmpUECrntiKey.str();
+    reply = (redisReply*)redisCommand(context, tmpQuery.str().c_str());
+    freeReplyObject(reply);
+    tmpQuery.str("");
+
+    // push UE key to UE imsi list
+    tmpQuery << "sadd " << DB_UE_LIST_IMSI << " " << tmpUEImsiKey.str();
+    reply = (redisReply*)redisCommand(context, tmpQuery.str().c_str());
+    freeReplyObject(reply);
+    tmpQuery.str("");
 
     redisFree(context);
 }

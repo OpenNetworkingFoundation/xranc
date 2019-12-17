@@ -32,6 +32,8 @@
 #include "../Activator/SBBundleActivator.h"
 #include "../../../APIs/Common/APIGwLogServiceWrapper.h"
 #include "../gRPCHandler/gRPCServerImpls/gRPCServerImpl-CellConfigReport.h"
+#include "../gRPCHandler/gRPCServerImpls/gRPCServerImpl-UEAdmissionStatus.h"
+#include "../gRPCHandler/gRPCServerImpls/gRPCServerImpl-UEContextUpdate.h"
 
 #define GRPC_SB_IP "127.0.0.1"
 #define GRPC_SB_CELLCONFIG_PORT "50002"

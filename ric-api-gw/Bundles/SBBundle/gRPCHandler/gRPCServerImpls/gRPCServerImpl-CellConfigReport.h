@@ -30,9 +30,9 @@
 #include <gRPCAPIs/cpp/gRPCServers/gRPCServer-CellConfigReport.h>
 #include <gRPCAPIs/cpp/gRPCPB/gRPC-CellConfigReport.grpc.pb.h>
 
-#include "Common/APIGwLogServiceWrapper.h"
-#include "SBBundleComponent.h"
-#include "GWCore/AbstractGWCoreComponent.h"
+#include "../../../../APIs/Common/APIGwLogServiceWrapper.h"
+#include "../../Component/SBBundleComponent.h"
+#include "../../../../APIs/GWCore/AbstractGWCoreComponent.h"
 #include "../../../RedisBundle/Activator/RedisBundleActivator.h"
 #include "../../../ONOSBundle/Activator/ONOSBundleActivator.h"
 

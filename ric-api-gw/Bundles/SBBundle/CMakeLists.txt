@@ -23,6 +23,8 @@ add_celix_bundle(SBBundle
         ./Activator/SBBundleActivator.cpp
         ./Component/SBBundleComponent.cpp
         ./gRPCHandler/gRPCServerImpls/gRPCServerImpl-CellConfigReport.cpp
+        ./gRPCHandler/gRPCServerImpls/gRPCServerImpl-UEAdmissionStatus.cpp
+        ./gRPCHandler/gRPCServerImpls/gRPCServerImpl-UEContextUpdate.cpp
 )
 
 include_directories(

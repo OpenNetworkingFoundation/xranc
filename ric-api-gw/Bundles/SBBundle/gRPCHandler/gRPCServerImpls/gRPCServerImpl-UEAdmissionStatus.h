@@ -30,9 +30,9 @@
 #include <gRPCAPIs/cpp/gRPCServers/gRPCServer-UEAdmissionStatus.h>
 #include <gRPCAPIs/cpp/gRPCPB/gRPC-UEAdmissionStatus.grpc.pb.h>
 
-#include "Common/APIGwLogServiceWrapper.h"
-#include "SBBundleComponent.h"
-#include "GWCore/AbstractGWCoreComponent.h"
+#include "../../../../APIs/Common/APIGwLogServiceWrapper.h"
+#include "../../Component/SBBundleComponent.h"
+#include "../../../../APIs/GWCore/AbstractGWCoreComponent.h"
 #include "../../../RedisBundle/Activator/RedisBundleActivator.h"
 #include "../../../ONOSBundle/Activator/ONOSBundleActivator.h"
 
@@ -47,6 +47,7 @@
 #define DB_CRNTI_KEY "CRNTI" // C-RNTI value
 #define DB_PLMNID_KEY "PLMN-ID" // Value in ECGI
 #define DB_ECID_KEY "ECID" // Value in ECGI
+#define DB_UE_INFO_KEY "UE-INFO"
 
 class gRPCServerImplUEAdmissionStatus final : public gRPCServerUEAdmissionStatus {
 

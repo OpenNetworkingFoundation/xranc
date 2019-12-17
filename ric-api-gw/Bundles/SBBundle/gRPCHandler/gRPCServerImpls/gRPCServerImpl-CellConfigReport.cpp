@@ -144,9 +144,9 @@ gRPCServerImplCellConfigReport::CallData::proceed() {
         tmpENBMap[DB_DFLS_SCHED_ENABLE] = request_.dlfsschedenable();
         tmpENBMap[DB_UE_LIST_IN_ENB] = DB_UE_LIST_IN_ENB; // to show UE list - it is not a value in CellConfigReport message
         message[DB_ENB_KEY] = tmpENBMap;
-
-        gwCoreComponent_->notifyEvent(SB_BUNDLE_KEY, REDIS_BUNDLE_KEY, message);
-        gwCoreComponent_->notifyEvent(SB_BUNDLE_KEY, ONOS_BUNDLE_KEY, message);
+        
+        gwCoreComponent_->notifyEvent(SB_BUNDLE_CELLCONFIGREPORT_KEY, REDIS_BUNDLE_KEY, message);
+        gwCoreComponent_->notifyEvent(SB_BUNDLE_CELLCONFIGREPORT_KEY, ONOS_BUNDLE_KEY, message);
         
         new CallData (service_, cq_, gwCoreComponent_, logSrv_);
         status_ = FINISH;

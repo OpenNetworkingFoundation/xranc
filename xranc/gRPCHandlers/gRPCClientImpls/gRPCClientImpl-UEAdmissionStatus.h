@@ -27,8 +27,6 @@ using grpc::ClientContext;
 using grpc::CompletionQueue;
 using grpc::Status;
 using gRPCUEAdmissionStatus::gRPCUEAdmissionStatusUpdater;
-using gRPCUEAdmissionStatus::gMsgECGI;
-using gRPCUEAdmissionStatus::gMsgResults;
 using gRPCUEAdmissionStatus::gMSGUEAdmissionStatusValues;
 
 class gRPCClientImplUEAdmissionStatus : public gRPCClientUEAdmissionStatus {
