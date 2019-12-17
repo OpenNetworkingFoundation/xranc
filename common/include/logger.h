@@ -19,7 +19,7 @@
 #include "spdlog/fmt/ostr.h"
 #include <XRANCPDU.h>
 
-#define TRACE_PDU 0
+#define TRACE_PDU 1
 
 #define log_error spdlog::error
 #define log_warn spdlog::warn

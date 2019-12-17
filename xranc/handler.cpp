@@ -93,6 +93,12 @@ void ue_context_update(XRANCPDU *pdu, client_t *client) {
 }
 
 void bearer_admission_request(XRANCPDU *pdu, client_t *client) {
+    log_debug("-> bearerAdmissionRequest enodeb:{} crnti:{}",
+                pdu->body.choice.bearerAdmissionRequest.ecgi.eUTRANcellIdentifier.buf[2],
+                ntohs(*(uint16_t *)(pdu->body.choice.bearerAdmissionRequest.crnti.buf)));
+
+    trace_pdu(pdu);
+
     XRANCPDU *resp = (XRANCPDU *)calloc(1, sizeof(XRANCPDU));
 
     /* Fill in the version */
@@ -130,6 +136,10 @@ void bearer_admission_request(XRANCPDU *pdu, client_t *client) {
     client_send(resp, client);
 
     ASN_STRUCT_FREE(asn_DEF_XRANCPDU, resp);
+
+    log_debug("<- bearerAdmissionResponse enodeb:{} crnti:{}",
+                pdu->body.choice.bearerAdmissionResponse.ecgi.eUTRANcellIdentifier.buf[2],
+                ntohs(*(uint16_t *)(pdu->body.choice.bearerAdmissionResponse.crnti.buf)));
 }
 
 void bearer_admission_status(XRANCPDU *pdu, client_t *client) {

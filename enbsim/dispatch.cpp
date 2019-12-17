@@ -71,6 +71,9 @@ int dispatch(uint8_t *buffer, size_t buf_size, context_t *context) {
             case XRANC_API_ID_uEAdmissionResponse:
                 ue_admission_response(pdu, context);
                 break;
+            case XRANC_API_ID_bearerAdmissionResponse:
+                bearer_admission_response(pdu, context);
+                break;
             default:
                 log_error("ERROR message not handled, api_id:{}", pdu->hdr.api_id);
         }
