@@ -64,4 +64,5 @@ typedef struct client {
 void closeClient(client_t *client);
 void client_timers_add(client_t *client);
 void client_send(XRANCPDU *pdu, client_t *client);
+void delete_cell_config_timer(client_t *client);
 #endif

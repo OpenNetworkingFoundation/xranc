@@ -34,6 +34,7 @@
 #include <iomanip>
 
 #include "logger.h"
+#include "asn.h"
 
 static void cell_config_timeout(int fd, short event, void *arg)
 {
@@ -50,36 +51,16 @@ void cell_config_timer_add(client_t *client) {
 }
 
 void cell_config_request(client_t *client) {
-    XRANCPDU *pdu;
+    XRANCPDU *pdu = (XRANCPDU *)calloc(1, sizeof(XRANCPDU));
     struct Cell cell;
 
     log_debug("-> CCReq enodeb:{}", client->enb_index);
 
-    /*  Allocate an instance of XRANCPDU */
-    pdu = (XRANCPDU *)calloc(1, sizeof(XRANCPDU));
+    XRAN_HEADER (pdu, cellConfigRequest);
 
-    /* Fill in the version */
-    pdu->hdr.ver.buf = (uint8_t *)calloc(1, sizeof(char));
-    //Shad - add api version to config
-    *(pdu->hdr.ver.buf) = '5';
-    pdu->hdr.ver.size = sizeof(char);
-
-    /* Fill in the API Id */
-    pdu->hdr.api_id = XRANC_API_ID_cellConfigRequest;
-
-    pdu->body.present = XRANCPDUBody_PR_cellConfigRequest;
-
-    /*  Fill in the ECGI */
-    //uint8_t PLMN_Identity[3];
-    //config->get_plmn_id(client->ip, PLMN_Identity);
     pdu->body.choice.cellConfigRequest.ecgi.pLMN_Identity.buf = (uint8_t *)calloc(1, 3);
-    //memcpy(pdu->body.choice.cellConfigRequest.ecgi.pLMN_Identity.buf, PLMN_Identity, sizeof(PLMN_Identity)/sizeof(PLMN_Identity[0]));
     pdu->body.choice.cellConfigRequest.ecgi.pLMN_Identity.size = 3;
-
-    //uint8_t EUTRANCellIdentifier[4];
-    //config->get_eci(client->ip, EUTRANCellIdentifier);
     pdu->body.choice.cellConfigRequest.ecgi.eUTRANcellIdentifier.buf = (uint8_t *)calloc(1, 4);
-    //memcpy(pdu->body.choice.cellConfigRequest.ecgi.eUTRANcellIdentifier.buf, EUTRANCellIdentifier, sizeof(EUTRANCellIdentifier)/sizeof(EUTRANCellIdentifier[0]));
     pdu->body.choice.cellConfigRequest.ecgi.eUTRANcellIdentifier.size = 4;
 
     if (client->ecgi) {
@@ -149,6 +130,8 @@ void cell_config_response(XRANCPDU *pdu, client_t *client) {
     }
 
     log_debug("<- CCResp enodeb:{}", client->enb_index);
+
+    delete_cell_config_timer(client);
 
     gRPCClientImplCellConfigReport reportService(grpc::CreateChannel(redisServerInfo, grpc::InsecureChannelCredentials()));
     int resultCode = reportService.UpdateCellConfig(cellConfigReport);
