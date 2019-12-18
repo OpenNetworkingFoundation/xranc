@@ -19,6 +19,7 @@
 #include "client.h"
 #include "cell_config.h"
 #include "handler.h"
+#include "bearer.h"
 #include "logger.h"
 
 using namespace std;
