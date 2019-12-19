@@ -32,9 +32,13 @@
 #include "../Activator/SBBundleActivator.h"
 #include "../../../APIs/Common/APIGwLogServiceWrapper.h"
 #include "../gRPCHandler/gRPCServerImpls/gRPCServerImpl-CellConfigReport.h"
+#include "../gRPCHandler/gRPCServerImpls/gRPCServerImpl-UEAdmissionStatus.h"
+#include "../gRPCHandler/gRPCServerImpls/gRPCServerImpl-UEContextUpdate.h"
 
 #define GRPC_SB_IP "127.0.0.1"
-#define GRPC_SB_PORT "50002"
+#define GRPC_SB_CELLCONFIG_PORT "50002"
+#define GRPC_SB_UEADMSTAT_PORT "50003"
+#define GRPC_SB_UECONTEXTUPDATE_PORT "50004"
 
 class SBBundleComponent : public AbstractBundleComponent {
 
@@ -62,9 +66,13 @@ class SBBundleComponent : public AbstractBundleComponent {
     protected:
 
     private:
-        gRPCServerCellConfigReport* service {nullptr};
+        gRPCServerCellConfigReport* serviceCellConfigReport {nullptr};
+        gRPCServerUEAdmissionStatus* serviceUEAdmissionStatus {nullptr};
+        gRPCServerUEContextUpdate* serviceUEContextUpdate {nullptr};
         AbstractGWCoreComponent* gwCoreComponent {nullptr};
-        std::thread* th1 {nullptr};
+        std::thread* th_cellconfig {nullptr};
+        std::thread* th_ueadmstat {nullptr};
+        std::thread* th_uecontextupdate {nullptr};
         const log_service_t* logSrv {nullptr};
 };
 

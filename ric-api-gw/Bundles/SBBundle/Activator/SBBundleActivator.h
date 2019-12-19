@@ -27,6 +27,10 @@
 #define SB_BUNDLE_VERSION "1.0.0"
 #define SB_BUNDLE_KEY "SBBundle"
 
+#define SB_BUNDLE_CELLCONFIGREPORT_KEY "SBBundle-CellConfigReport"
+#define SB_BUNDLE_UEADMISSIONSTATUS_KEY "SBBundle-UEAdmissionStatus"
+#define SB_BUNDLE_UECONTEXTUPDATE_KEY "SBBundle-UEContextUpdate"
+
 class SBBundleActivator : public DmActivator {
 
     public:
