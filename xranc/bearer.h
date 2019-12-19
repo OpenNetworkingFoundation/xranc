@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef __CELL_CONFIG_H
-#define __CELL_CONFIG_H
+#ifndef __UE_H
+#define __UE_H
 
 #include <XRANCPDU.h>
+#include "client.h"
 
-/*  Test PLMN ID = Test MCC (001) + Test MNC (001) */
-const uint8_t TEST_PLMNID[3] = {0x00, 0x10, 0x01};
-
-void make_ecgi(ECGI_t *dest, int enb_index);
+void bearer_admission_request(XRANCPDU *pdu, client_t *client);
+void bearer_admission_status(XRANCPDU *pdu, client_t *client);
+void bearer_release_ind(XRANCPDU *pdu, client_t *client);
 
 #endif

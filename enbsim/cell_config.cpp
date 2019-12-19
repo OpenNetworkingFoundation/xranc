@@ -24,45 +24,22 @@
 #include "context.h"
 #include "config.h"
 #include "logger.h"
-
-
-/*  Test PLMN ID = Test MCC (001) + Test MNC (001) */
-const uint8_t TEST_PLMNID[3] = {0x00, 0x10, 0x01};
-
-static void make_ecgi(ECGI_t *dest, int enb_index) {
-    dest->pLMN_Identity.buf = (uint8_t *)calloc(1, sizeof(PLMN_Identity_t));
-    memcpy(dest->pLMN_Identity.buf, TEST_PLMNID, 3);
-    dest->pLMN_Identity.size = 3;
-    dest->eUTRANcellIdentifier.buf = (uint8_t *)calloc(1, 4);
-    dest->eUTRANcellIdentifier.buf[0] = 0;
-    dest->eUTRANcellIdentifier.buf[1] = 0;
-    dest->eUTRANcellIdentifier.buf[2] = enb_index;
-    dest->eUTRANcellIdentifier.buf[3] = 0;
-    dest->eUTRANcellIdentifier.size = 4;
-}
+#include "asn.h"
 
 void cell_config_request(XRANCPDU *req, context_t *context) {
-    // TODO
-    XRANCPDU *resp;
     struct Cell cell;
     int ret;
+    XRANCPDU *resp = (XRANCPDU *)calloc(1, sizeof(XRANCPDU));
+    XRAN_HEADER (req, cellConfigReport);
+    XRAN_ECGI (req, cellConfigReport, context->enb_index);
 
     log_debug("<- CCReq enodeb:{}", context->enb_index);
 
-    /*  Allocate an instance of XRANCPDU */
-    resp = (XRANCPDU *)calloc(1, sizeof(XRANCPDU));
-
-    /* Fill in the version */
     resp->hdr.ver.buf = (uint8_t *)calloc(1, sizeof(char));
-    //Shad - add api version to config
     *(resp->hdr.ver.buf) = '5';
     resp->hdr.ver.size = sizeof(char);
-
-    /* Fill in the API Id */
     resp->hdr.api_id = XRANC_API_ID_cellConfigReport;
-
     resp->body.present = XRANCPDUBody_PR_cellConfigReport;
-
     make_ecgi(&resp->body.choice.cellConfigReport.ecgi, context->enb_index);
 
     /*  Physical cell id */

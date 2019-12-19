@@ -23,6 +23,7 @@
 #include <CRNTI.h>
 #include "client.h"
 #include "logger.h"
+#include "asn.h"
 #include "config.h"
 
 #include <gRPCAPIs/cpp/gRPCPB/gRPC-UEAdmissionStatus.grpc.pb.h>
@@ -54,31 +55,16 @@ void copy_erab_response(ERABResponse_t *dest, ERABResponse_t *src) {
 
 void ue_admission_request(XRANCPDU *pdu, client_t *client) {
 
-    log_debug("-> UEAdmReq enodeb:{} crnti:{}",
+    uint16_t crnti = ntohs(*(uint16_t *)(pdu->body.choice.uEAdmissionRequest.crnti.buf));
+
+    log_debug("<- UEAdmReq enodeb:{} crnti:{}",
                 pdu->body.choice.uEAdmissionRequest.ecgi.eUTRANcellIdentifier.buf[2],
-                ntohs(*(uint16_t *)(pdu->body.choice.uEAdmissionRequest.crnti.buf)));
+                crnti);
 
     XRANCPDU *resp = (XRANCPDU *)calloc(1, sizeof(XRANCPDU));
-
-    /* Fill in the version */
-    resp->hdr.ver.buf = (uint8_t *)calloc(1, sizeof(char));
-
-    //Shad - add api version to config
-    *(resp->hdr.ver.buf) = '5';
-    resp->hdr.ver.size = sizeof(char);
-
-    /* Fill in the API Id */
-    resp->hdr.api_id = XRANC_API_ID_uEAdmissionResponse;
-
-    resp->body.present = XRANCPDUBody_PR_uEAdmissionResponse;
-
-    // Shad - copy CRNTI from request ???
-    copy_crnti(&resp->body.choice.uEAdmissionResponse.crnti,
-            &pdu->body.choice.uEAdmissionResponse.crnti);
-
-    //  Shad Copy over the ECGI from the request ???
-    copy_ecgi(&resp->body.choice.uEAdmissionResponse.ecgi,
-            &pdu->body.choice.uEAdmissionResponse.ecgi);
+    XRAN_HEADER (resp, uEAdmissionResponse);
+    XRAN_CRNTI (resp, uEAdmissionResponse, crnti);
+    XRAN_ECGI (resp, uEAdmissionResponse, client->enb_index);
 
     resp->body.choice.uEAdmissionResponse.adm_est_response = AdmEstResponse_success;
 
@@ -86,7 +72,7 @@ void ue_admission_request(XRANCPDU *pdu, client_t *client) {
 
     client->num_ue_admissions++;
 
-    log_debug("<- UEAdmResp enodeb:{} crnti:{}",
+    log_debug("-> UEAdmResp enodeb:{} crnti:{}",
                 resp->body.choice.uEAdmissionResponse.ecgi.eUTRANcellIdentifier.buf[2],
                 ntohs(*(uint16_t *)(resp->body.choice.uEAdmissionResponse.crnti.buf)));
 
@@ -184,8 +170,9 @@ void ue_context_update(XRANCPDU *pdu, client_t *client) {
     ueContext.setMmeUeS1apId(recvMmeUeS1apId);
     ueContext.setEnbUeS1apId(recvEnbUeS1apId);
 
-    log_info("-> UEContextUpdate crnti:{} plmnid:{} ecid:{} mme_ue_s1ap_id:{} enb_ue_s1ap_id:{} imsi:{}", 
-        recvCrnti, recvPlmnId, recvEcid, recvMmeUeS1apId, recvEnbUeS1apId, recvImsi);
+    log_info("-> UEContextUpdate enodeb:{} crnti:{} plmnid:{} ecid:{} mme_ue_s1ap_id:{} enb_ue_s1ap_id:{} imsi{}",
+        pdu->body.choice.uEContextUpdate.ecgi.eUTRANcellIdentifier.buf[2], 
+        recvCrnti, recvEcid, recvMmeUeS1apId, recvEnbUeS1apId, recvImsi);
 
     gRPCClientImplUEContextUpdate reportService(grpc::CreateChannel(redisServerInfo, grpc::InsecureChannelCredentials()));
     int resultCode = reportService.UpdateUEContext(ueContext);

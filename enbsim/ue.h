@@ -20,4 +20,5 @@
 
 void start_ues(context_t *context);
 void ue_admission_response(XRANCPDU *req, context_t *context);
+void bearer_admission_response(XRANCPDU *req, context_t *context);
 #endif

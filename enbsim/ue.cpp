@@ -20,30 +20,14 @@
 #include <XRANCPDU.h>
 #include "context.h"
 #include "ue.h"
-#include "asn_common.h"
+#include "asn.h"
 #include "logger.h"
 
 void ue_admission_request(context_t *context, uint16_t crnti) {
     XRANCPDU *req = (XRANCPDU *)calloc(1, sizeof(XRANCPDU));
-
-    /* Fill in the version */
-    req->hdr.ver.buf = (uint8_t *)calloc(1, sizeof(char));
-
-    //Shad - add api version to config
-    *(req->hdr.ver.buf) = '5';
-    req->hdr.ver.size = sizeof(char);
-
-    /* Fill in the API Id */
-    req->hdr.api_id = XRANC_API_ID_uEAdmissionRequest;
-
-    req->body.present = XRANCPDUBody_PR_uEAdmissionRequest;
-
-    req->body.choice.uEAdmissionRequest.crnti.buf = (uint8_t *)calloc(1, 2);
-    req->body.choice.uEAdmissionRequest.crnti.size = 2;
-    uint16_t htons_crnti = htons(crnti);
-    memcpy(req->body.choice.uEAdmissionRequest.crnti.buf, &htons_crnti, 2);
-
-    make_ecgi(&req->body.choice.uEAdmissionRequest.ecgi, context->enb_index);
+    XRAN_HEADER (req, uEAdmissionRequest);
+    XRAN_CRNTI (req, uEAdmissionRequest, crnti);
+    XRAN_ECGI (req, uEAdmissionRequest, context->enb_index);
 
     req->body.choice.uEAdmissionRequest.adm_est_cause = AdmEstCause_mo_signalling;
 
@@ -54,28 +38,93 @@ void ue_admission_request(context_t *context, uint16_t crnti) {
     ASN_STRUCT_FREE(asn_DEF_XRANCPDU, req);
 }
 
+void bearer_admission_status(context_t *context, uint16_t crnti) {
+    XRANCPDU *req = (XRANCPDU *)calloc(1, sizeof(XRANCPDU));
+    XRAN_HEADER (req, bearerAdmissionStatus);
+    XRAN_CRNTI (req, bearerAdmissionStatus, crnti);
+    XRAN_ECGI (req, bearerAdmissionStatus, context->enb_index);
+
+    BearerAdmissionStatus_t *x = &req->body.choice.bearerAdmissionStatus;
+
+    x->num_erabs = 2;
+
+    for (int i = 0; i < x->num_erabs; i++) {
+        ERABResponse_Item_t *erab = (ERABResponse_Item_t *)calloc(1, sizeof(ERABResponse_Item_t));
+        erab->id = i + 1;
+        erab->decision = ERABDecision_success;
+        int ret = ASN_SEQUENCE_ADD(&x->erab_status, erab);
+        assert(ret == 0);
+    }
+
+    ctx_send(req, context);
+
+    log_debug("-> bearerAdmissionStatus enodeb:{} crnti:{}", context->enb_index, crnti);
+
+    ASN_STRUCT_FREE(asn_DEF_XRANCPDU, req);
+}
+
+void bearer_admission_response(XRANCPDU *pdu, context_t *context) {
+    uint16_t crnti;
+
+    crnti = ntohs(*((uint16_t *)(pdu->body.choice.bearerAdmissionResponse.crnti.buf)));
+    log_debug("<- bearerAdmissionResponse enodeb:{} crnti:{}", context->enb_index, crnti);
+
+    bearer_admission_status(context, crnti);
+}
+
+void bearer_admission_request(context_t *context, uint16_t crnti) {
+    XRANCPDU *req = (XRANCPDU *)calloc(1, sizeof(XRANCPDU));
+    XRAN_HEADER (req, bearerAdmissionRequest);
+    XRAN_CRNTI (req, bearerAdmissionRequest, crnti);
+    XRAN_ECGI (req, bearerAdmissionRequest, context->enb_index);
+
+    BearerAdmissionRequest_t *x = &req->body.choice.bearerAdmissionRequest;
+
+    x->ue_ambr.ambr_dl.buf = (uint8_t *)calloc(1, sizeof(uint8_t));
+    x->ue_ambr.ambr_dl.size = 1;
+    *(x->ue_ambr.ambr_dl.buf) = 100;
+    x->ue_ambr.ambr_ul.buf = (uint8_t *)calloc(1, sizeof(uint8_t));
+    x->ue_ambr.ambr_ul.size = 1;
+    *(x->ue_ambr.ambr_ul.buf) = 100;
+
+    x->num_erabs = 2;
+
+    for (int i = 0; i < x->num_erabs; i++) {
+        ERABParams_Item_t *erab = (ERABParams_Item_t *)calloc(1, sizeof(ERABParams_Item_t));
+        erab->id = i + 1;
+        erab->direction = ERABDirection_ul;
+        erab->type = ERABType_dedicated;
+        erab->qci = 8;
+        erab->arp = 5;
+        erab->gbr_dl.buf = (uint8_t *)calloc(1, sizeof(uint16_t));
+        erab->gbr_dl.size = sizeof(uint16_t);
+        *((uint16_t *)(erab->gbr_dl.buf)) = htons(100);
+        erab->gbr_ul.buf = (uint8_t *)calloc(1, sizeof(uint16_t));
+        erab->gbr_ul.size = sizeof(uint16_t);
+        *((uint16_t *)(erab->gbr_ul.buf)) = htons(200);
+        erab->mbr_dl.buf = (uint8_t *)calloc(1, sizeof(uint16_t));
+        erab->mbr_dl.size = sizeof(uint16_t);
+        *((uint16_t *)(erab->mbr_dl.buf)) = htons(300);
+        erab->mbr_ul.buf = (uint8_t *)calloc(1, sizeof(uint16_t));
+        erab->mbr_ul.size = sizeof(uint16_t);
+        *((uint16_t *)(erab->mbr_ul.buf)) = htons(400);
+        int ret = ASN_SEQUENCE_ADD(&x->erab_params, erab);
+        assert(ret == 0);
+    }
+
+    ctx_send(req, context);
+
+    log_debug("-> bearerAdmissionRequest enodeb:{} crnti:{}", context->enb_index, crnti);
+
+    ASN_STRUCT_FREE(asn_DEF_XRANCPDU, req);
+}
+
 void ue_context_update(context_t *context, uint16_t crnti,
         uint32_t mme_ue_s1ap_id, uint32_t enb_ue_s1ap_id) {
     XRANCPDU *req = (XRANCPDU *)calloc(1, sizeof(XRANCPDU));
-
-    /* Fill in the version */
-    req->hdr.ver.buf = (uint8_t *)calloc(1, sizeof(char));
-
-    //Shad - add api version to config
-    *(req->hdr.ver.buf) = '5';
-    req->hdr.ver.size = sizeof(char);
-
-    /* Fill in the API Id */
-    req->hdr.api_id = XRANC_API_ID_uEContextUpdate;
-
-    req->body.present = XRANCPDUBody_PR_uEContextUpdate;
-
-    req->body.choice.uEContextUpdate.crnti.buf = (uint8_t *)calloc(1, 2);
-    req->body.choice.uEContextUpdate.crnti.size = 2;
-    uint16_t htons_crnti = htons(crnti);
-    memcpy(req->body.choice.uEContextUpdate.crnti.buf, &htons_crnti, 2);
-
-    make_ecgi(&req->body.choice.uEContextUpdate.ecgi, context->enb_index);
+    XRAN_HEADER (req, uEContextUpdate);
+    XRAN_CRNTI (req, uEContextUpdate, crnti);
+    XRAN_ECGI (req, uEContextUpdate, context->enb_index);
 
     req->body.choice.uEContextUpdate.mME_UE_S1AP_ID = mme_ue_s1ap_id;
     req->body.choice.uEContextUpdate.eNB_UE_S1AP_ID = enb_ue_s1ap_id;
@@ -94,29 +143,15 @@ void ue_context_update(context_t *context, uint16_t crnti,
     log_debug("-> UEContextUpdate enodeb:{} crnti:{}", context->enb_index, crnti);
 
     ASN_STRUCT_FREE(asn_DEF_XRANCPDU, req);
+
+    bearer_admission_request(context, crnti);
 }
 
 void ue_admission_status(context_t *context, uint16_t crnti) {
     XRANCPDU *req = (XRANCPDU *)calloc(1, sizeof(XRANCPDU));
-
-    /* Fill in the version */
-    req->hdr.ver.buf = (uint8_t *)calloc(1, sizeof(char));
-
-    //Shad - add api version to config
-    *(req->hdr.ver.buf) = '5';
-    req->hdr.ver.size = sizeof(char);
-
-    /* Fill in the API Id */
-    req->hdr.api_id = XRANC_API_ID_uEAdmissionStatus;
-
-    req->body.present = XRANCPDUBody_PR_uEAdmissionStatus;
-
-    req->body.choice.uEAdmissionStatus.crnti.buf = (uint8_t *)calloc(1, 2);
-    req->body.choice.uEAdmissionStatus.crnti.size = 2;
-    uint16_t htons_crnti = htons(crnti);
-    memcpy(req->body.choice.uEAdmissionStatus.crnti.buf, &htons_crnti, 2);
-
-    make_ecgi(&req->body.choice.uEAdmissionStatus.ecgi, context->enb_index);
+    XRAN_HEADER (req, uEAdmissionStatus);
+    XRAN_CRNTI (req, uEAdmissionStatus, crnti);
+    XRAN_ECGI (req, uEAdmissionStatus, context->enb_index);
 
     req->body.choice.uEAdmissionStatus.adm_est_status = AdmEstStatus_success;
 

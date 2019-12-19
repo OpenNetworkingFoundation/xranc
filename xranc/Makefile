@@ -16,7 +16,10 @@ XRANC_PROGRAM_SRCS = \
 	workqueue.cpp \
 	dispatch.cpp \
 	cell_config.cpp \
-	handler.cpp
+	handler.cpp \
+	bearer.cpp \
+	ho.cpp
+
 GRPC_HANDLER_CLIENT_IMPL_SRCS = $(wildcard ./gRPCHandlers/gRPCClientImpls/*.cpp)
 
 all: $(XRANC_PROGRAM)

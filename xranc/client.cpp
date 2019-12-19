@@ -20,17 +20,21 @@
 #include "cell_config.h"
 #include "logger.h"
 
+void delete_cell_config_timer(client_t *client) {
+    if (client->cell_config_timer != NULL) {
+        evtimer_del(client->cell_config_timer);
+        event_free(client->cell_config_timer);
+        client->cell_config_timer = NULL;
+    }
+
+}
 void closeClient(client_t *client) {
     if (client != NULL) {
         if (client->fd >= 0) {
             close(client->fd);
             client->fd = -1;
         }
-        if (client->cell_config_timer != NULL) {
-            evtimer_del(client->cell_config_timer);
-            event_free(client->cell_config_timer);
-            client->cell_config_timer = NULL;
-        }
+        delete_cell_config_timer(client);
     }
 }
 
