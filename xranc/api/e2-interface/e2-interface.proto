@@ -1,0 +1,147 @@
+// Copyright 2020-present Open Networking Foundation
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// This file defines O-RAN E2 interface, which is the interface between an eNB and RIC
+
+syntax = "proto3";
+
+package interface.e2;
+
+service E2InterfaceService {
+    rpc UpdateAttribute (E2Message) returns (ServiceResult) {}
+
+    // Can be extended if necessary
+}
+
+// Definition of all message types in E2 interface
+enum E2MessageType {
+    E2_UNKNOWNMESSAGE = 0;
+    E2_CELLCONFIGREQUEST = 1;
+    E2_CELLCONFIGREPORT = 2;
+    E2_UEADMISSIONREQUEST = 3;
+    E2_UEADMISSIONRESPONSE = 4;
+    E2_UEADMISSIONSTATUS = 5;
+    E2_UECONTEXTUPDATE = 6;
+    E2_UERECONFIGIND = 7;
+    E2_UERELEASEIND = 8;
+    E2_BEARERADMISSIONREQUEST = 9;
+    E2_BEARERADMISSIONRESPONSE = 10;
+    E2_BEARERADMISSIONSTATUS = 11;
+    E2_BEARERRELEASEIND = 12;
+    E2_HOREQUEST = 13;
+    E2_HOFAILURE = 14;
+    E2_HOCOMPLETE = 15;
+    E2_RXSIGMEASREPORT = 16;
+    E2_L2MEASCONFIG = 17;
+    E2_RADIOMEASREPORTPERUE = 18;
+    E2_RADIOMEASREPORTPERCELL = 19;
+    E2_SCHEDMEASREPORTPERUE = 20;
+    E2_SCHEDMEASREPORTPERCELL = 21;
+    E2_PDCPMEASREPORTPERUE = 22;
+    E2_UECAPABILITYINFO = 23;
+    E2_UECAPABILITYENQUIRY = 24;
+    E2_SCELLADD = 25;
+    E2_SCELLADDSTATUS = 26;
+    E2_SCELLDELETE = 27;
+    E2_RRMCONFIG = 28;
+    E2_RRMCONFIGSTATUS = 29;
+    E2_SENBADD = 30;
+    E2_SENBADDSTATUS = 31;
+    E2_SENBDELETE = 32;
+    E2_TRAFFICSPLITCONFIG = 33;
+    E2_HOCAUSE = 34;
+    E2_RRCMEASCONFIG = 35;
+
+    // Can be extended if necessary
+}
+
+// Message header
+message E2MessageHeader {
+    string sourceID = 1;
+    string destinationID = 2;
+    E2MessageType messageType = 3;
+}
+
+// Message payload; one of attributes defined below
+message E2MessagePayload {
+    oneof attributes {
+        E2CellConfigReportAttribute cellConfigAttribute = 1;
+        E2UEAdmissionStatusAttribute uEAdmissionStatusAttribute = 2;
+        E2UEContextUpdateAttribute uEContextUpdateAttribute = 3;
+    }
+}
+
+// Full message frame having one header and one payload
+message E2Message {
+    E2MessageHeader header = 1;
+    E2MessagePayload payload = 2;
+}
+
+// RPC result
+message ServiceResult {
+    int32 resultCode = 1;
+    string resultMessage = 2;
+}
+
+// From here, detailed E2 interface messages are coming up
+// Please read a specicifaction document if you want to know in detail
+// https://github.com/OpenNetworkingFoundation/xranc-sb-api/tree/master/docs
+
+// Types of most values are 'string' for convenience
+
+message E2ECGI {
+    string plmnId = 1;
+    string ecid = 2;
+}
+
+message E2CandScell {
+    string pci = 1;
+    string earfcnDl = 2;
+}
+
+// CellConfigReport message
+message E2CellConfigReportAttribute {
+    E2ECGI ecgi = 1;
+    string pci = 2;
+    repeated E2CandScell candScells = 3;
+    string earfcnDl = 4;
+    string earfcnUl = 5;
+    string rbsPerTtiDl = 6;
+    string rbsPerTtiUl = 7;
+    string numTxAntenna = 8;
+    string duplexMode = 9;
+    string maxNumConnectedUes = 10;
+    string maxNumConnectedBearers = 11;
+    string maxNumUesSchedPerTtiDl = 12;
+    string maxNumUesSchedPerTtiUl = 13;
+    string dlfsSchedEnable = 14;
+}
+
+// UEAdmissionStatus message
+message E2UEAdmissionStatusAttribute {
+    string crnti = 1;
+    E2ECGI ecgi = 2;
+    string admissionEstStatus = 3;
+}
+
+// UEContextUpdate message
+message E2UEContextUpdateAttribute {
+    string crnti = 1;
+    E2ECGI ecgi = 2;
+    string mmeUeS1apId = 3;
+    string enbUeS1apId = 4;
+    string imsi = 5;
+}
+
+// To be extended for other E2 message types
