@@ -31,25 +31,6 @@
 #include "api/e2-interface/e2-interface.grpc.pb.h"
 #include "api/e2-interface/gRPCClientE2Interface.h"
 
-void copy_crnti(CRNTI_t *dest, CRNTI_t *src) {
-    dest->buf = (uint8_t *)calloc(1, src->size);
-    memcpy(dest->buf, src->buf, src->size);
-    dest->size = src->size;
-}
-
-void copy_ecgi(ECGI_t *dest, ECGI_t *src) {
-    dest->pLMN_Identity.buf = (uint8_t *)calloc(1, src->pLMN_Identity.size);
-    memcpy(dest->pLMN_Identity.buf, src->pLMN_Identity.buf, src->pLMN_Identity.size);
-    dest->pLMN_Identity.size = src->pLMN_Identity.size;
-    dest->eUTRANcellIdentifier.buf = (uint8_t *)calloc(1, src->eUTRANcellIdentifier.size);
-    memcpy(dest->eUTRANcellIdentifier.buf, src->eUTRANcellIdentifier.buf, src->eUTRANcellIdentifier.size);
-    dest->eUTRANcellIdentifier.size = src->eUTRANcellIdentifier.size;
-}
-
-void copy_erab_response(ERABResponse_t *dest, ERABResponse_t *src) {
-    // TODO
-}
-
 void ue_admission_request(XRANCPDU *pdu, client_t *client) {
 
     uint16_t crnti = ntohs(*(uint16_t *)(pdu->body.choice.uEAdmissionRequest.crnti.buf));
@@ -189,7 +170,7 @@ void ue_context_update(XRANCPDU *pdu, client_t *client) {
     tmpE2UEContextUpdateAttribute.set_enbues1apid(recvEnbUeS1apId);
     tmpE2UEContextUpdateAttribute.set_imsi(recvImsi);
 
-    log_info("-> UEContextUpdate enodeb:{} crnti:{} plmnid:{} ecid:{} mme_ue_s1ap_id:{} enb_ue_s1ap_id:{} imsi{}",
+    log_debug("-> UEContextUpdate enodeb:{} crnti:{} plmnid:{} ecid:{} mme_ue_s1ap_id:{} enb_ue_s1ap_id:{} imsi{}",
         pdu->body.choice.uEContextUpdate.ecgi.eUTRANcellIdentifier.buf[2], 
         recvCrnti, recvEcid, recvMmeUeS1apId, recvEnbUeS1apId, recvImsi);
 
@@ -210,52 +191,4 @@ void ue_context_update(XRANCPDU *pdu, client_t *client) {
     if (resultCode != 1) {
         log_warn("UEContextUpdate is not updated well due to a NBI connection problem");
     }
-}
-
-void bearer_admission_request(XRANCPDU *pdu, client_t *client) {
-    XRANCPDU *resp = (XRANCPDU *)calloc(1, sizeof(XRANCPDU));
-
-    /* Fill in the version */
-    resp->hdr.ver.buf = (uint8_t *)calloc(1, sizeof(char));
-
-    //Shad - add api version to config
-    *(resp->hdr.ver.buf) = '5';
-    resp->hdr.ver.size = sizeof(char);
-
-    /* Fill in the API Id */
-    resp->hdr.api_id = XRANC_API_ID_bearerAdmissionResponse;
-
-    resp->body.present = XRANCPDUBody_PR_bearerAdmissionResponse;
-
-    copy_crnti(&resp->body.choice.bearerAdmissionResponse.crnti,
-            &pdu->body.choice.bearerAdmissionRequest.crnti);
-
-    copy_ecgi(&resp->body.choice.bearerAdmissionResponse.ecgi,
-            &pdu->body.choice.bearerAdmissionRequest.ecgi);
-
-    resp->body.choice.bearerAdmissionResponse.num_erab_list
-            = pdu->body.choice.bearerAdmissionRequest.num_erabs;
-
-    int ret;
-    ERABResponse_Item_t *erab_response;
-    for (int i = 0; i < pdu->body.choice.bearerAdmissionRequest.num_erabs; i++) {
-        erab_response = (ERABResponse_Item_t *)calloc(1, sizeof(ERABResponse_Item_t));
-        assert(erab_response);
-        erab_response->id = pdu->body.choice.bearerAdmissionRequest.erab_params.list.array[0]->id;
-        erab_response->decision = 0;
-        ret = ASN_SEQUENCE_ADD(&resp->body.choice.bearerAdmissionResponse.erab_response, erab_response);
-        assert(ret == 0);
-    }
-
-    client_send(resp, client);
-
-    ASN_STRUCT_FREE(asn_DEF_XRANCPDU, resp);
-}
-
-void bearer_admission_status(XRANCPDU *pdu, client_t *client) {
-    // TODO
-}
-
-void bearer_release_ind(XRANCPDU *pdu, client_t *client) {
-    // TODO
 }
