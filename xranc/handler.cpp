@@ -26,13 +26,10 @@
 #include "asn.h"
 #include "config.h"
 
-#include <gRPCAPIs/cpp/gRPCPB/gRPC-UEAdmissionStatus.grpc.pb.h>
-#include <gRPCAPIs/cpp/gRPCPB/gRPC-UEContextUpdate.grpc.pb.h>
-#include <gRPCAPIs/cpp/gRPCParams/gRPCParam-UEAdmissionStatusMsg.h>
-#include <gRPCAPIs/cpp/gRPCParams/gRPCParam-UEContextUpdateMsg.h>
-#include "gRPCHandlers/gRPCClientImpls/gRPCClientImpl-UEAdmissionStatus.h"
-#include "gRPCHandlers/gRPCClientImpls/gRPCClientImpl-UEContextUpdate.h"
-
+#include <grpcpp/grpcpp.h>
+#include <grpc/support/log.h>
+#include "api/e2-interface/e2-interface.grpc.pb.h"
+#include "api/e2-interface/gRPCClientE2Interface.h"
 
 void copy_crnti(CRNTI_t *dest, CRNTI_t *src) {
     dest->buf = (uint8_t *)calloc(1, src->size);
@@ -82,7 +79,7 @@ void ue_admission_request(XRANCPDU *pdu, client_t *client) {
 void ue_admission_status(XRANCPDU *pdu, client_t *client) {
 
     Config* config = Config::Instance();
-    std::string redisServerInfo = config->redis_ip_addr + ":" + GRPC_SB_UEADMSTAT_PORT;
+    std::string redisServerInfo = config->api_gw_ip_addr + ":" + std::to_string(config->api_gw_sbbundle_port);
 
     XRANCPDUBody_t payload = pdu->body;
     UEAdmissionStatus_t body = payload.choice.uEAdmissionStatus;
@@ -108,8 +105,25 @@ void ue_admission_status(XRANCPDU *pdu, client_t *client) {
     // admissionEstStatus
     std::string recvAdmissionEstStatus = std::to_string(body.adm_est_status);
 
-    gRPCParamUEAdmissionStatusMsg ueAdmissionStatusMsg(recvCrnti, recvPlmnId, recvEcid);
-    ueAdmissionStatusMsg.setAdmissionEstStatus(recvAdmissionEstStatus);
+    interface::e2::E2ECGI tmpECGI;
+    tmpECGI.set_plmnid(recvPlmnId);
+    tmpECGI.set_ecid(recvEcid);
+
+    interface::e2::E2UEAdmissionStatusAttribute tmpE2UEAdmissionStatusAttribute;
+    tmpE2UEAdmissionStatusAttribute.set_crnti(recvCrnti);
+    tmpE2UEAdmissionStatusAttribute.set_allocated_ecgi(&tmpECGI);
+
+    interface::e2::E2MessagePayload tmpE2MessagePayload;
+    tmpE2MessagePayload.set_allocated_ueadmissionstatusattribute(&tmpE2UEAdmissionStatusAttribute);
+
+    interface::e2::E2MessageHeader tmpE2MessageHeader;
+    tmpE2MessageHeader.set_messagetype(interface::e2::E2MessageType::E2_UEADMISSIONSTATUS);
+    tmpE2MessageHeader.set_sourceid("enb");
+    tmpE2MessageHeader.set_destinationid("redis");
+
+    interface::e2::E2Message tmpE2Message;
+    tmpE2Message.set_allocated_header(&tmpE2MessageHeader);
+    tmpE2Message.set_allocated_payload(&tmpE2MessagePayload);
 
     log_debug("-> UEAdmStatus enodeb:{} crnti:{} ueAdmEstStatus:{}",
                 pdu->body.choice.uEAdmissionStatus.ecgi.eUTRANcellIdentifier.buf[2],
@@ -117,9 +131,9 @@ void ue_admission_status(XRANCPDU *pdu, client_t *client) {
                 std::to_string(body.adm_est_status));
 
     if (recvAdmissionEstStatus.compare("0")) { // ueAdmEststatus == 0 - successful
-        gRPCClientImplUEAdmissionStatus reportService(grpc::CreateChannel(redisServerInfo, grpc::InsecureChannelCredentials()));
-        int resultCode = reportService.UpdateUEAdmissionStatus(ueAdmissionStatusMsg);
-        if (resultCode != 1) {
+        gRPCClientE2Interface reportService(grpc::CreateChannel(redisServerInfo, grpc::InsecureChannelCredentials()));
+        int resultCode = reportService.UpdateAttribute(tmpE2Message);
+        if (resultCode == -1) {
             log_warn("UEAdmissionStatus is not updated well due to a NBI connection problem");
         }
     }
@@ -128,7 +142,7 @@ void ue_admission_status(XRANCPDU *pdu, client_t *client) {
 void ue_context_update(XRANCPDU *pdu, client_t *client) {
 
     Config* config = Config::Instance();
-    std::string redisServerInfo = config->redis_ip_addr + ":" + GRPC_SB_UECONTEXTUPDATE_PORT;
+    std::string redisServerInfo = config->api_gw_ip_addr + ":" + std::to_string(config->api_gw_sbbundle_port);
 
     XRANCPDUBody_t payload = pdu->body;
     UEContextUpdate_t body = payload.choice.uEContextUpdate;
@@ -164,18 +178,35 @@ void ue_context_update(XRANCPDU *pdu, client_t *client) {
         recvImsi += body.imsi->buf[index];
     }
 
-    gRPCParamUEContextUpdateMsg ueContext(recvImsi);
-    ueContext.setEcgi(recvPlmnId, recvEcid);
-    ueContext.setCrnti(recvCrnti);
-    ueContext.setMmeUeS1apId(recvMmeUeS1apId);
-    ueContext.setEnbUeS1apId(recvEnbUeS1apId);
+    interface::e2::E2ECGI tmpECGI;
+    tmpECGI.set_plmnid(recvPlmnId);
+    tmpECGI.set_ecid(recvEcid);
+
+    interface::e2::E2UEContextUpdateAttribute tmpE2UEContextUpdateAttribute;
+    tmpE2UEContextUpdateAttribute.set_allocated_ecgi(&tmpECGI);
+    tmpE2UEContextUpdateAttribute.set_crnti(recvCrnti);
+    tmpE2UEContextUpdateAttribute.set_mmeues1apid(recvMmeUeS1apId);
+    tmpE2UEContextUpdateAttribute.set_enbues1apid(recvEnbUeS1apId);
+    tmpE2UEContextUpdateAttribute.set_imsi(recvImsi);
 
     log_info("-> UEContextUpdate enodeb:{} crnti:{} plmnid:{} ecid:{} mme_ue_s1ap_id:{} enb_ue_s1ap_id:{} imsi{}",
         pdu->body.choice.uEContextUpdate.ecgi.eUTRANcellIdentifier.buf[2], 
         recvCrnti, recvEcid, recvMmeUeS1apId, recvEnbUeS1apId, recvImsi);
 
-    gRPCClientImplUEContextUpdate reportService(grpc::CreateChannel(redisServerInfo, grpc::InsecureChannelCredentials()));
-    int resultCode = reportService.UpdateUEContext(ueContext);
+    interface::e2::E2MessagePayload tmpE2MessagePayload;
+    tmpE2MessagePayload.set_allocated_uecontextupdateattribute(&tmpE2UEContextUpdateAttribute);
+    
+    interface::e2::E2MessageHeader tmpE2MessageHeader;
+    tmpE2MessageHeader.set_messagetype(interface::e2::E2MessageType::E2_UECONTEXTUPDATE);
+    tmpE2MessageHeader.set_sourceid("enb");
+    tmpE2MessageHeader.set_destinationid("redis");
+
+    interface::e2::E2Message tmpE2Message;
+    tmpE2Message.set_allocated_header(&tmpE2MessageHeader);
+    tmpE2Message.set_allocated_payload(&tmpE2MessagePayload);
+
+    gRPCClientE2Interface reportService(grpc::CreateChannel(redisServerInfo, grpc::InsecureChannelCredentials()));
+    int resultCode = reportService.UpdateAttribute(tmpE2Message);
     if (resultCode != 1) {
         log_warn("UEContextUpdate is not updated well due to a NBI connection problem");
     }

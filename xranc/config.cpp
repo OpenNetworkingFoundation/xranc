@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <jsoncpp/json/json.h>
-#include <config.h>
+#include "config.h"
 #include <string.h>
 
 using namespace std;
@@ -40,9 +40,8 @@ void Config::parse(string config_file) {
     no_meas_link_removal_ms = obj["no_meas_link_removal_ms"].asInt();
     idle_ue_removal_ms = obj["idle_ue_removal_ms"].asInt();
     nb_response_timeout_ms = obj["nb_response_timeout_ms"].asInt();
-    redis_ip_addr = obj["redis_ip_addr"].asString();
-    redis_port = obj["redis_port"].asInt();
-    xranc_nbi_port = obj["xranc_nbi_port"].asInt();
+    api_gw_ip_addr = obj["api_gw_ip_addr"].asString();
+    api_gw_sbbundle_port = obj["api_gw_sbbundle_port"].asInt();
 }
 
 ostream & operator << (ostream &os, const Config &c) {
@@ -56,7 +55,8 @@ ostream & operator << (ostream &os, const Config &c) {
     os << "no_meas_link_removal_ms: " << c.no_meas_link_removal_ms << ",";
     os << "idle_ue_removal_ms: " << c.idle_ue_removal_ms << ",";
     os << "nb_response_timeout_ms: " << c.nb_response_timeout_ms << ",";
-    os << "redis_ip_addr: " << c.redis_ip_addr;
+    os << "api_gw_ip_addr: " << c.api_gw_ip_addr << ",";
+    os << "api_gw_sbbundle_port: " << c.api_gw_sbbundle_port << ",";
 
     for(auto const& x : c.active_cells) {
         Cell c = x.second;
