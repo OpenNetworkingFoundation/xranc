@@ -31,9 +31,7 @@
 #include "../../../APIs/GWCore/AbstractGWCoreComponent.h"
 #include "../../../APIs/Common/APIGwLogServiceWrapper.h"
 
-#include "../../SBBundle/gRPCHandler/gRPCServerImpls/gRPCServerImpl-CellConfigReport.h"
-#include "../../SBBundle/gRPCHandler/gRPCServerImpls/gRPCServerImpl-UEAdmissionStatus.h"
-#include "../../SBBundle/gRPCHandler/gRPCServerImpls/gRPCServerImpl-UEContextUpdate.h"
+#include "../../SBBundle/API/e2-interface/gRPCServerE2Interface.h"
 
 #define REDIS_DB_IP "172.17.0.2"
 #define REDIS_DB_PORT 6379

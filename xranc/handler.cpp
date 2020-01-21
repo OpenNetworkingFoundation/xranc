@@ -86,25 +86,25 @@ void ue_admission_status(XRANCPDU *pdu, client_t *client) {
     // admissionEstStatus
     std::string recvAdmissionEstStatus = std::to_string(body.adm_est_status);
 
-    interface::e2::E2ECGI tmpECGI;
-    tmpECGI.set_plmnid(recvPlmnId);
-    tmpECGI.set_ecid(recvEcid);
+    interface::e2::E2ECGI* tmpECGI = new interface::e2::E2ECGI();
+    tmpECGI->set_plmnid(recvPlmnId);
+    tmpECGI->set_ecid(recvEcid);
 
-    interface::e2::E2UEAdmissionStatusAttribute tmpE2UEAdmissionStatusAttribute;
-    tmpE2UEAdmissionStatusAttribute.set_crnti(recvCrnti);
-    tmpE2UEAdmissionStatusAttribute.set_allocated_ecgi(&tmpECGI);
+    interface::e2::E2UEAdmissionStatusAttribute* tmpE2UEAdmissionStatusAttribute = new interface::e2::E2UEAdmissionStatusAttribute();
+    tmpE2UEAdmissionStatusAttribute->set_crnti(recvCrnti);
+    tmpE2UEAdmissionStatusAttribute->set_allocated_ecgi(tmpECGI);
 
-    interface::e2::E2MessagePayload tmpE2MessagePayload;
-    tmpE2MessagePayload.set_allocated_ueadmissionstatusattribute(&tmpE2UEAdmissionStatusAttribute);
+    interface::e2::E2MessagePayload* tmpE2MessagePayload = new interface::e2::E2MessagePayload();
+    tmpE2MessagePayload->set_allocated_ueadmissionstatusattribute(tmpE2UEAdmissionStatusAttribute);
 
-    interface::e2::E2MessageHeader tmpE2MessageHeader;
-    tmpE2MessageHeader.set_messagetype(interface::e2::E2MessageType::E2_UEADMISSIONSTATUS);
-    tmpE2MessageHeader.set_sourceid("enb");
-    tmpE2MessageHeader.set_destinationid("redis");
+    interface::e2::E2MessageHeader* tmpE2MessageHeader = new interface::e2::E2MessageHeader();
+    tmpE2MessageHeader->set_messagetype(interface::e2::E2MessageType::E2_UEADMISSIONSTATUS);
+    tmpE2MessageHeader->set_sourceid("enb");
+    tmpE2MessageHeader->set_destinationid("redis");
 
     interface::e2::E2Message tmpE2Message;
-    tmpE2Message.set_allocated_header(&tmpE2MessageHeader);
-    tmpE2Message.set_allocated_payload(&tmpE2MessagePayload);
+    tmpE2Message.set_allocated_header(tmpE2MessageHeader);
+    tmpE2Message.set_allocated_payload(tmpE2MessagePayload);
 
     log_debug("-> UEAdmStatus enodeb:{} crnti:{} ueAdmEstStatus:{}",
                 pdu->body.choice.uEAdmissionStatus.ecgi.eUTRANcellIdentifier.buf[2],
@@ -159,32 +159,32 @@ void ue_context_update(XRANCPDU *pdu, client_t *client) {
         recvImsi += body.imsi->buf[index];
     }
 
-    interface::e2::E2ECGI tmpECGI;
-    tmpECGI.set_plmnid(recvPlmnId);
-    tmpECGI.set_ecid(recvEcid);
+    interface::e2::E2ECGI* tmpECGI = new interface::e2::E2ECGI();
+    tmpECGI->set_plmnid(recvPlmnId);
+    tmpECGI->set_ecid(recvEcid);
 
-    interface::e2::E2UEContextUpdateAttribute tmpE2UEContextUpdateAttribute;
-    tmpE2UEContextUpdateAttribute.set_allocated_ecgi(&tmpECGI);
-    tmpE2UEContextUpdateAttribute.set_crnti(recvCrnti);
-    tmpE2UEContextUpdateAttribute.set_mmeues1apid(recvMmeUeS1apId);
-    tmpE2UEContextUpdateAttribute.set_enbues1apid(recvEnbUeS1apId);
-    tmpE2UEContextUpdateAttribute.set_imsi(recvImsi);
+    interface::e2::E2UEContextUpdateAttribute* tmpE2UEContextUpdateAttribute = new interface::e2::E2UEContextUpdateAttribute();
+    tmpE2UEContextUpdateAttribute->set_allocated_ecgi(tmpECGI);
+    tmpE2UEContextUpdateAttribute->set_crnti(recvCrnti);
+    tmpE2UEContextUpdateAttribute->set_mmeues1apid(recvMmeUeS1apId);
+    tmpE2UEContextUpdateAttribute->set_enbues1apid(recvEnbUeS1apId);
+    tmpE2UEContextUpdateAttribute->set_imsi(recvImsi);
 
     log_debug("-> UEContextUpdate enodeb:{} crnti:{} plmnid:{} ecid:{} mme_ue_s1ap_id:{} enb_ue_s1ap_id:{} imsi{}",
         pdu->body.choice.uEContextUpdate.ecgi.eUTRANcellIdentifier.buf[2], 
-        recvCrnti, recvEcid, recvMmeUeS1apId, recvEnbUeS1apId, recvImsi);
+        recvCrnti, recvPlmnId, recvEcid, recvMmeUeS1apId, recvEnbUeS1apId, recvImsi);
 
-    interface::e2::E2MessagePayload tmpE2MessagePayload;
-    tmpE2MessagePayload.set_allocated_uecontextupdateattribute(&tmpE2UEContextUpdateAttribute);
+    interface::e2::E2MessagePayload* tmpE2MessagePayload = new interface::e2::E2MessagePayload();
+    tmpE2MessagePayload->set_allocated_uecontextupdateattribute(tmpE2UEContextUpdateAttribute);
     
-    interface::e2::E2MessageHeader tmpE2MessageHeader;
-    tmpE2MessageHeader.set_messagetype(interface::e2::E2MessageType::E2_UECONTEXTUPDATE);
-    tmpE2MessageHeader.set_sourceid("enb");
-    tmpE2MessageHeader.set_destinationid("redis");
+    interface::e2::E2MessageHeader* tmpE2MessageHeader = new interface::e2::E2MessageHeader();
+    tmpE2MessageHeader->set_messagetype(interface::e2::E2MessageType::E2_UECONTEXTUPDATE);
+    tmpE2MessageHeader->set_sourceid("enb");
+    tmpE2MessageHeader->set_destinationid("redis");
 
     interface::e2::E2Message tmpE2Message;
-    tmpE2Message.set_allocated_header(&tmpE2MessageHeader);
-    tmpE2Message.set_allocated_payload(&tmpE2MessagePayload);
+    tmpE2Message.set_allocated_header(tmpE2MessageHeader);
+    tmpE2Message.set_allocated_payload(tmpE2MessagePayload);
 
     gRPCClientE2Interface reportService(grpc::CreateChannel(redisServerInfo, grpc::InsecureChannelCredentials()));
     int resultCode = reportService.UpdateAttribute(tmpE2Message);

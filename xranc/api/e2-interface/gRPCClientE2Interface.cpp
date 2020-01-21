@@ -38,6 +38,6 @@ gRPCClientE2Interface::UpdateAttribute(interface::e2::E2Message e2Message) {
     if (status.ok()) {
         return results.resultcode();
     } else {
-        return -1;
+        return 0;
     }
 }

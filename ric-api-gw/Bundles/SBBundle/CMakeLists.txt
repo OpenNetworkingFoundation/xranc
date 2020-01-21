@@ -36,18 +36,15 @@ add_celix_bundle(SBBundle
         SOURCES
         ./Activator/SBBundleActivator.cpp
         ./Component/SBBundleComponent.cpp
-        ./gRPCHandler/gRPCServerImpls/gRPCServerImpl-CellConfigReport.cpp
-        ./gRPCHandler/gRPCServerImpls/gRPCServerImpl-UEAdmissionStatus.cpp
-        ./gRPCHandler/gRPCServerImpls/gRPCServerImpl-UEContextUpdate.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/API/e2-interface/e2-interface.grpc.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/API/e2-interface/e2-interface.pb.cc
+        ./API/e2-interface/gRPCServerE2Interface.cpp
 )
 
 include_directories(
         ../../APIs
         ./Activator
         ./Component
-        ./gRPCHandler/gRPCServerImpls
         ./API/e2-interface
 )
 
