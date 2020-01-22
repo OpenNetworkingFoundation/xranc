@@ -26,7 +26,6 @@
     "no_meas_link_removal_ms": 1000000,
     "idle_ue_removal_ms": 1,
     "nb_response_timeout_ms": 10000,
-    "redis_ip_addr": "127.0.0.1",
-    "redis_port": 50002,
-    "xranc_nbi_port": 50001
+    "api_gw_ip_addr": "127.0.0.1",
+    "api_gw_sbbundle_port": 50002
 }

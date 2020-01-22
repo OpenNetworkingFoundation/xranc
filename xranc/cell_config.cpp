@@ -25,13 +25,13 @@
 #include "client.h"
 #include "config.h"
 #include <memory>
-#include <grpcpp/grpcpp.h>
-#include <grpc/support/log.h>
-#include <gRPCAPIs/cpp/gRPCPB/gRPC-CellConfigReport.grpc.pb.h>
-#include <gRPCAPIs/cpp/gRPCParams/gRPCParam-CellConfigReportMsg.h>
-#include "gRPCHandlers/gRPCClientImpls/gRPCClientImpl-CellConfigReport.h"
 #include <sstream>
 #include <iomanip>
+
+#include <grpcpp/grpcpp.h>
+#include <grpc/support/log.h>
+#include "api/e2-interface/e2-interface.grpc.pb.h"
+#include "api/e2-interface/gRPCClientE2Interface.h"
 
 #include "logger.h"
 #include "asn.h"
@@ -79,7 +79,7 @@ void cell_config_request(client_t *client) {
 void cell_config_response(XRANCPDU *pdu, client_t *client) {
 
     Config* config = Config::Instance();
-    std::string redisServerInfo = config->redis_ip_addr + ":" + GRPC_SB_CELLCONFIG_PORT;
+    std::string redisServerInfo = config->api_gw_ip_addr + ":" + std::to_string(config->api_gw_sbbundle_port);
 
     XRANCPDUBody_t payload = pdu->body;
     CellConfigReport_t body = payload.choice.cellConfigReport;
@@ -98,27 +98,41 @@ void cell_config_response(XRANCPDU *pdu, client_t *client) {
         }
     }
 
-    gRPCParamCellConfigReportMsg cellConfigReport(recvPlmnId, recvEcid); // PLMN ID and ECID
-    cellConfigReport.setPci(std::to_string(body.pci)); // PCI
+    interface::e2::E2ECGI* tmpECGI = new interface::e2::E2ECGI();
+    tmpECGI->set_plmnid(recvPlmnId);
+    tmpECGI->set_ecid(recvEcid);
 
-    std::vector<gRPCSubParamCandScellMsg> tmpArr;
+    interface::e2::E2CellConfigReportAttribute* tmpCellConfigReportAttribute = new interface::e2::E2CellConfigReportAttribute();
+    tmpCellConfigReportAttribute->set_allocated_ecgi(tmpECGI);
+    tmpCellConfigReportAttribute->set_pci(std::to_string(body.pci));
     for (int index = 0; index < body.cand_scells.list.count; index++) {
-        gRPCSubParamCandScellMsg tmpgRPCSubParamCandScellMsg(std::to_string(body.cand_scells.list.array[index]->pci), std::to_string(body.cand_scells.list.array[index]->earfcn_dl));
-        tmpArr.push_back(tmpgRPCSubParamCandScellMsg);
+        interface::e2::E2CandScell* tmpCandScell = tmpCellConfigReportAttribute->add_candscells();
+        tmpCandScell->set_pci(std::to_string(body.cand_scells.list.array[index]->pci));
+        tmpCandScell->set_earfcndl(std::to_string(body.cand_scells.list.array[index]->earfcn_dl));
     }
+    tmpCellConfigReportAttribute->set_earfcndl(std::to_string(body.earfcn_dl));
+    tmpCellConfigReportAttribute->set_earfcnul(std::to_string(body.earfcn_ul));
+    tmpCellConfigReportAttribute->set_rbsperttidl(std::to_string(body.rbs_per_tti_dl));
+    tmpCellConfigReportAttribute->set_rbsperttiul(std::to_string(body.rbs_per_tti_ul));
+    tmpCellConfigReportAttribute->set_numtxantenna(std::to_string(body.num_tx_antenna));
+    tmpCellConfigReportAttribute->set_duplexmode(std::to_string(body.duplex_mode));
+    tmpCellConfigReportAttribute->set_maxnumconnectedues(std::to_string(body.max_num_connected_ues));
+    tmpCellConfigReportAttribute->set_maxnumconnectedbearers(std::to_string(body.max_num_connected_bearers));
+    tmpCellConfigReportAttribute->set_maxnumuesschedperttidl(std::to_string(body.max_num_ues_sched_per_tti_dl));
+    tmpCellConfigReportAttribute->set_maxnumuesschedperttiul(std::to_string(body.max_num_ues_sched_per_tti_ul));
+    tmpCellConfigReportAttribute->set_dlfsschedenable(std::to_string(body.dlfs_sched_enable));
 
-    cellConfigReport.setCandScells(tmpArr);
-    cellConfigReport.setEarfcnDl(std::to_string(body.earfcn_dl));
-    cellConfigReport.setEarfcnUl(std::to_string(body.earfcn_ul));
-    cellConfigReport.setRbsPerTtiDl(std::to_string(body.rbs_per_tti_dl));
-    cellConfigReport.setRbsPerTtiUl(std::to_string(body.rbs_per_tti_ul));
-    cellConfigReport.setNumTxAntenna(std::to_string(body.num_tx_antenna));
-    cellConfigReport.setDuplexMode(std::to_string(body.duplex_mode));
-    cellConfigReport.setMaxNumConnectedUes(std::to_string(body.max_num_connected_ues));
-    cellConfigReport.setMaxNumConnectedBearers(std::to_string(body.max_num_connected_bearers));
-    cellConfigReport.setMaxNumUesSchedPerTtiDl(std::to_string(body.max_num_ues_sched_per_tti_dl));
-    cellConfigReport.setMaxNumUesSchedPerTtiUl(std::to_string(body.max_num_ues_sched_per_tti_ul));
-    cellConfigReport.setDlfsSchedEnable(std::to_string(body.dlfs_sched_enable));
+    interface::e2::E2MessagePayload* tmpE2MessagePayload = new interface::e2::E2MessagePayload();
+    tmpE2MessagePayload->set_allocated_cellconfigattribute(tmpCellConfigReportAttribute);
+
+    interface::e2::E2MessageHeader* tmpE2MessageHeader = new interface::e2::E2MessageHeader();
+    tmpE2MessageHeader->set_messagetype(interface::e2::E2MessageType::E2_CELLCONFIGREPORT);
+    tmpE2MessageHeader->set_sourceid("enb");
+    tmpE2MessageHeader->set_destinationid("redis");
+    
+    interface::e2::E2Message tmpE2Message;
+    tmpE2Message.set_allocated_header(tmpE2MessageHeader);
+    tmpE2Message.set_allocated_payload(tmpE2MessagePayload);
 
     if (client->ecgi == NULL) {
         client->ecgi = (ecgi_t *)malloc(sizeof(ecgi_t));
@@ -132,8 +146,9 @@ void cell_config_response(XRANCPDU *pdu, client_t *client) {
 
     delete_cell_config_timer(client);
 
-    gRPCClientImplCellConfigReport reportService(grpc::CreateChannel(redisServerInfo, grpc::InsecureChannelCredentials()));
-    int resultCode = reportService.UpdateCellConfig(cellConfigReport);
+    gRPCClientE2Interface reportService(grpc::CreateChannel(redisServerInfo, grpc::InsecureChannelCredentials()));
+    int resultCode = reportService.UpdateAttribute(tmpE2Message);
+
     if (resultCode != 1) {
         log_warn("CellConfigReport is not updated well due to a NBI connection problem");
     }

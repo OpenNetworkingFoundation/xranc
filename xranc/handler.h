@@ -23,7 +23,4 @@
 void ue_admission_request(XRANCPDU *pdu, client_t *client);
 void ue_admission_status(XRANCPDU *pdu, client_t *client);
 void ue_context_update(XRANCPDU *pdu, client_t *client);
-void bearer_admission_request(XRANCPDU *pdu, client_t *client);
-void bearer_admission_status(XRANCPDU *pdu, client_t *client);
-void bearer_release_ind(XRANCPDU *pdu, client_t *client);
 #endif

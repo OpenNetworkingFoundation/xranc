@@ -66,39 +66,18 @@ SBBundleComponent::unregisterBundle() {
 
 void
 SBBundleComponent::runGRPCServer() {
-    
-    //To-Do: remove this hard coded part and get this information from GWCore
-    //for CellConfigReport
-    serviceCellConfigReport = new gRPCServerImplCellConfigReport(logSrv, getGWCoreComponent());
-    serviceCellConfigReport->setServerIP(GRPC_SB_IP);
-    serviceCellConfigReport->setServerPort(GRPC_SB_CELLCONFIG_PORT);
-    th_cellconfig = new std::thread ([this] {serviceCellConfigReport->run();});
-    // for UEAdmissionStatus
-    serviceUEAdmissionStatus = new gRPCServerImplUEAdmissionStatus(logSrv, getGWCoreComponent());
-    serviceUEAdmissionStatus->setServerIP(GRPC_SB_IP);
-    serviceUEAdmissionStatus->setServerPort(GRPC_SB_UEADMSTAT_PORT);
-    th_ueadmstat = new std::thread([this] {serviceUEAdmissionStatus->run();});
-    // for UEContextUpdate
-    serviceUEContextUpdate = new gRPCServerImplUEContextUpdate(logSrv, getGWCoreComponent());
-    serviceUEContextUpdate->setServerIP(GRPC_SB_IP);
-    serviceUEContextUpdate->setServerPort(GRPC_SB_UECONTEXTUPDATE_PORT);
-    th_uecontextupdate = new std::thread([this] {serviceUEContextUpdate->run();});
+
+    serviceE2Interface = new gRPCServerE2Interface(logSrv, getGWCoreComponent());
+    serviceE2Interface->setServerIP(GRPC_SB_IP);
+    serviceE2Interface->setServerPort(GRPC_SB_PORT);
+    th_e2interface = new std::thread ([this] {serviceE2Interface->run();});
 }
 
 void
 SBBundleComponent::killGRPCServer() {
-    // for CellConfigReport
-    serviceCellConfigReport->shutdownGRPCServer();
-    th_cellconfig->join();
-    delete th_cellconfig;
-    // for UEAdmissionStatus
-    serviceUEAdmissionStatus->shutdownGRPCServer();
-    th_ueadmstat->join();
-    delete th_ueadmstat;
-    // for UEContextupdate
-    serviceUEContextUpdate->shutdownGRPCServer();
-    th_uecontextupdate->join();
-    delete th_uecontextupdate;
+    serviceE2Interface->shutdownGRPCServer();
+    th_e2interface->join();
+    delete th_e2interface;
 }
 
 void

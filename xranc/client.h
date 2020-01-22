@@ -21,7 +21,6 @@
 #include <event2/bufferevent.h>
 #include <event2/buffer.h>
 #include <XRANCPDU.h>
-#include "gRPCHandlers/gRPCClientImpls/gRPCClientImpl-CellConfigReport.h"
 
 /**
  * Struct to carry around connection (client)-specific data.

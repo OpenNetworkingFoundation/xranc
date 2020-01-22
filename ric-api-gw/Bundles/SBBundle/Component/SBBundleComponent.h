@@ -31,14 +31,12 @@
 #include "../../../APIs/GWCore/AbstractGWCoreComponent.h"
 #include "../Activator/SBBundleActivator.h"
 #include "../../../APIs/Common/APIGwLogServiceWrapper.h"
-#include "../gRPCHandler/gRPCServerImpls/gRPCServerImpl-CellConfigReport.h"
-#include "../gRPCHandler/gRPCServerImpls/gRPCServerImpl-UEAdmissionStatus.h"
-#include "../gRPCHandler/gRPCServerImpls/gRPCServerImpl-UEContextUpdate.h"
+#include "../API/e2-interface/gRPCServerE2Interface.h"
 
 #define GRPC_SB_IP "127.0.0.1"
-#define GRPC_SB_CELLCONFIG_PORT "50002"
-#define GRPC_SB_UEADMSTAT_PORT "50003"
-#define GRPC_SB_UECONTEXTUPDATE_PORT "50004"
+#define GRPC_SB_PORT "50002"
+
+class gRPCServerE2Interface;
 
 class SBBundleComponent : public AbstractBundleComponent {
 
@@ -66,13 +64,9 @@ class SBBundleComponent : public AbstractBundleComponent {
     protected:
 
     private:
-        gRPCServerCellConfigReport* serviceCellConfigReport {nullptr};
-        gRPCServerUEAdmissionStatus* serviceUEAdmissionStatus {nullptr};
-        gRPCServerUEContextUpdate* serviceUEContextUpdate {nullptr};
+        gRPCServerE2Interface* serviceE2Interface {nullptr};
         AbstractGWCoreComponent* gwCoreComponent {nullptr};
-        std::thread* th_cellconfig {nullptr};
-        std::thread* th_ueadmstat {nullptr};
-        std::thread* th_uecontextupdate {nullptr};
+        std::thread* th_e2interface {nullptr};
         const log_service_t* logSrv {nullptr};
 };
 

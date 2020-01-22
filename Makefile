@@ -11,7 +11,6 @@ CELIX_DIR := $(ROOT_DIR)/common/celix
 PROTOBUF_DIR := $(GRPC_DIR)/third_party/protobuf
 XRANC_DIR := $(ROOT_DIR)/xranc
 XRANC_SBI_DIR := $(ROOT_DIR)/xranc-sb-api-src
-XRANC_NBI_DIR := $(ROOT_DIR)/xranc-nb-api-src
 XRANC_ENBSIM_DIR := $(ROOT_DIR)/enbsim
 XRANC_DB_DIR := $(ROOT_DIR)/database
 
@@ -52,9 +51,6 @@ utilities:
 build_xranc-sb:
 	cd $(XRANC_SBI_DIR) && make;
 
-build_xranc-nb:
-	cd $(XRANC_NBI_DIR) && make;
-
 build_xranc:| build_xranc-sb build_xranc-nb
 	cd $(XRANC_DIR) && make;
 
@@ -64,14 +60,11 @@ build_enbsim:| build_xranc-sb
 clean_sbi:
 	cd $(XRANC_SBI_DIR) && make clean;
 
-clean_nbi:
-	cd $(XRANC_SBI_DIR) && make clean;
-
 clean_xranc:
 	cd $(XRANC_DIR) && make clean;
 
 clean_enbsim:
 	cd $(XRANC_ENBSIM_DIR) && make clean;
 
-clean:| clean_sbi clean_nbi clean_xranc clean_enbsim
+clean:| clean_sbi clean_xranc clean_enbsim
 	@echo "All cleaned"

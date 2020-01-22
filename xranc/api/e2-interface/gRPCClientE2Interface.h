@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-present Open Networking Foundation
+ * Copyright 2020-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef _GRPCCLIENT_H_
-#define _GRPCCLIENT_H_
+#ifndef _GRPCCLIENTE2INTERFACE_H_
+#define _GRPCCLIENTE2INTERFACE_H_
 
 #include <iostream>
 #include <memory>
@@ -26,16 +26,20 @@
 #include <grpcpp/grpcpp.h>
 #include <grpc/support/log.h>
 
-class gRPCClient {
+#include "e2-interface.grpc.pb.h"
+
+class gRPCClientE2Interface {
     
     public:
-        gRPCClient();
-        ~gRPCClient();
+        explicit gRPCClientE2Interface(std::shared_ptr<grpc::Channel> channel)
+            : stub_(interface::e2::E2InterfaceService::NewStub(channel)) {};
 
+        int UpdateAttribute(interface::e2::E2Message e2Message); // return result code
     private:
+        std::unique_ptr<interface::e2::E2InterfaceService::Stub> stub_;
 
     protected:
 
 };
 
-#endif /* _GRPCCLIENT_H_ */
+#endif /* _GRPCCLIENTE2INTERFACE_H_ */

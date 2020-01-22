@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __UE_H
-#define __UE_H
+#ifndef __UE_BEARER_H
+#define __UE_BEARER_H
 
 #include <XRANCPDU.h>
 #include "client.h"
