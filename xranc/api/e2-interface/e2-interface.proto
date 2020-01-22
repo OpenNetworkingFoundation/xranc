@@ -27,21 +27,21 @@ service E2InterfaceService {
 // Definition of all message types in E2 interface
 enum E2MessageType {
     E2_UNKNOWNMESSAGE = 0;
-    E2_CELLCONFIGREQUEST = 1;
-    E2_CELLCONFIGREPORT = 2;
-    E2_UEADMISSIONREQUEST = 3;
-    E2_UEADMISSIONRESPONSE = 4;
-    E2_UEADMISSIONSTATUS = 5;
-    E2_UECONTEXTUPDATE = 6;
-    E2_UERECONFIGIND = 7;
-    E2_UERELEASEIND = 8;
-    E2_BEARERADMISSIONREQUEST = 9;
-    E2_BEARERADMISSIONRESPONSE = 10;
-    E2_BEARERADMISSIONSTATUS = 11;
-    E2_BEARERRELEASEIND = 12;
-    E2_HOREQUEST = 13;
-    E2_HOFAILURE = 14;
-    E2_HOCOMPLETE = 15;
+    E2_CELLCONFIGREQUEST = 1; // Defined, but not used yet
+    E2_CELLCONFIGREPORT = 2; // Defined and used at xranc and ric-api-gw
+    E2_UEADMISSIONREQUEST = 3; // Defined, but not used yet
+    E2_UEADMISSIONRESPONSE = 4; // Defined, but not used yet
+    E2_UEADMISSIONSTATUS = 5; // Defined and used at xranc and ric-api-gw
+    E2_UECONTEXTUPDATE = 6; // Defined and used at xranc and ric-api-gw
+    E2_UERECONFIGIND = 7; // Defined, but not used yet
+    E2_UERELEASEIND = 8; // Defined, but not used yet
+    E2_BEARERADMISSIONREQUEST = 9; // Defined, but not used yet
+    E2_BEARERADMISSIONRESPONSE = 10; // Defined, but not used yet
+    E2_BEARERADMISSIONSTATUS = 11; // Defined, but not used yet
+    E2_BEARERRELEASEIND = 12; // Defined, but not used yet
+    E2_HOREQUEST = 13; // Defined, but not used yet
+    E2_HOFAILURE = 14; // Defined, but not used yet
+    E2_HOCOMPLETE = 15; // Defined, but not used yet
     E2_RXSIGMEASREPORT = 16;
     E2_L2MEASCONFIG = 17;
     E2_RADIOMEASREPORTPERUE = 18;
@@ -110,6 +110,11 @@ message E2CandScell {
     string earfcnDl = 2;
 }
 
+// CellConfigRequest message
+message E2CellConfigRequestAttribute {
+    E2ECGI ecgi = 1;
+}
+
 // CellConfigReport message
 message E2CellConfigReportAttribute {
     E2ECGI ecgi = 1;
@@ -128,11 +133,38 @@ message E2CellConfigReportAttribute {
     string dlfsSchedEnable = 14;
 }
 
+enum E2AdmEstCause {
+    E2_EMERGENCY = 0;
+    E2_HIGHHP_ACCESS = 1;
+    E2_MT_ACCESS = 2;
+    E2_MO_SIGNALLING = 3;
+    E2_MO_DATA = 4;
+}
+
+enum E2SuccessOrFailure {
+    E2_SUCCESS = 0;
+    E2_FAILURE = 1;
+}
+
+// UEAdmissionRequest message
+message E2UEAdmissionRequestAttribute {
+    string crnti = 1;
+    E2ECGI ecgi = 2;
+    E2AdmEstCause admissionEstCause = 3;
+}
+
+// UEAdmissionResponse message
+message E2UEAdmissionResponseAttribute {
+    string crnti = 1;
+    E2ECGI ecgi = 2;
+    E2SuccessOrFailure admissionEstResponse = 3;
+}
+
 // UEAdmissionStatus message
 message E2UEAdmissionStatusAttribute {
     string crnti = 1;
     E2ECGI ecgi = 2;
-    string admissionEstStatus = 3;
+    E2SuccessOrFailure admissionEstStatus = 3;
 }
 
 // UEContextUpdate message
@@ -142,6 +174,120 @@ message E2UEContextUpdateAttribute {
     string mmeUeS1apId = 3;
     string enbUeS1apId = 4;
     string imsi = 5;
+}
+
+enum E2ReconfigCause {
+    E2_RECONFIG_RLF = 0;
+    E2_RECONFIG_HO_FAIL = 1;
+    E2_RECONFIG_OTHERS = 2;
+}
+
+// UEReconfigInd message
+message E2UEReconfigIndAttribute {
+    string crntiOld = 1;
+    E2ECGI ecgi = 2;
+    string crntiNew = 3;
+    E2ReconfigCause reconfigCause = 4;
+}
+
+enum E2ReleaseCause {
+    E2_RELEASE_INACTIVITY = 0;
+    E2_RELEASE_RLF = 1;
+    E2_RELEASE_OTHERS = 2;
+}
+
+// UEReleaseInd message
+message E2UEReleaseIndAttribute {
+    string crnti = 1;
+    E2ECGI ecgi = 2;
+    E2ReleaseCause releaseCause = 3;
+}
+
+message E2UEAMBR {
+    string ambrDl = 1;
+    string ambrUl = 2;
+}
+
+enum E2ERABDirection {
+    E2_DL = 0;
+    E2_UL = 1;
+    E2_BOTH = 2;
+}
+
+enum E2ERABType {
+    E2_ERAB_DEFAULT = 0;
+    E2_ERAB_DEDICATED = 1;
+}
+
+message E2ERABParamsItem {
+    string id = 1;
+    E2ERABDirection direction = 2;
+    E2ERABType type = 3;
+    string qci = 4;
+    string arp = 5;
+    string gbrDl = 6;
+    string gbrUl = 7;
+    string mbrDl = 8;
+    string mbrUl = 9;
+}
+
+message E2ERABResponseItem {
+    string id = 1;
+    E2SuccessOrFailure decision = 2;
+}
+
+// BearerAdmissionRequest message
+message E2BearerAdmissionRequestAttribute {
+    string crnti = 1;
+    E2ECGI ecgi = 2;
+    E2UEAMBR ueAmbr = 3;
+    string numErabsList = 4;
+    repeated E2ERABParamsItem erabsParams = 5;
+}
+
+// BearerAdmissionResponse message
+message E2BearerAdmissionResponseAttribute {
+    string crnti = 1;
+    E2ECGI ecgi = 2;
+    string numErabsList = 3;
+    repeated E2ERABResponseItem erabResponse = 4;
+}
+
+// BearerAdmissionStatus message
+message E2BearerAdmissionStatusAttribute {
+    string crnti = 1;
+    E2ECGI ecgi = 2;
+    string numErabsList = 3;
+    repeated E2ERABResponseItem erabStatus = 4;
+}
+
+// BearerReleaseInd message
+message E2BearerReleaseIndAttribute {
+    string crnti = 1;
+    E2ECGI ecgi = 2;
+    string numErabsList = 3;
+    repeated string erabIds = 4;
+}
+
+// HORequest message 
+message E2HORequestAttribute {
+    string crnti = 1;
+    E2ECGI ecgiS = 2;
+    E2ECGI ecgiT = 3;
+}
+
+// HOFailure message
+message E2HOFailure {
+    string crnti = 1;
+    E2ECGI ecgiS = 2;
+    string hoFailureCause = 3; // Not defined in standard yet
+}
+
+// HOComplete message
+message E2HOComplete {
+    string crntiNew = 1;
+    E2ECGI ecgiS = 2;
+    E2ECGI ecgiT = 3;
 }
 
 // To be extended for other E2 message types
