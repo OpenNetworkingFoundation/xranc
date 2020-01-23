@@ -123,7 +123,7 @@ void cell_config_response(XRANCPDU *pdu, client_t *client) {
     tmpCellConfigReportAttribute->set_dlfsschedenable(std::to_string(body.dlfs_sched_enable));
 
     interface::e2::E2MessagePayload* tmpE2MessagePayload = new interface::e2::E2MessagePayload();
-    tmpE2MessagePayload->set_allocated_cellconfigattribute(tmpCellConfigReportAttribute);
+    tmpE2MessagePayload->set_allocated_cellconfigreportattribute(tmpCellConfigReportAttribute);
 
     interface::e2::E2MessageHeader* tmpE2MessageHeader = new interface::e2::E2MessageHeader();
     tmpE2MessageHeader->set_messagetype(interface::e2::E2MessageType::E2_CELLCONFIGREPORT);

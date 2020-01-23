@@ -122,29 +122,29 @@ gRPCServerE2Interface::CallData::updateCellConfigReport(interface::e2::E2Message
     // for debuging codes
     // ---
     std::stringstream logMsg;
-    logMsg << "RIC SB reports received CellConfigReport Message (PLMNID: " << payload.cellconfigattribute().ecgi().plmnid() << ", ECID: " << payload.cellconfigattribute().ecgi().ecid() << ")";
+    logMsg << "RIC SB reports received CellConfigReport Message (PLMNID: " << payload.cellconfigreportattribute().ecgi().plmnid() << ", ECID: " << payload.cellconfigreportattribute().ecgi().ecid() << ")";
     APIGWLogINFO(logSrv_, logMsg.str().c_str());
     logMsg.str("");
-    logMsg << "RIC SB reports received CellConfigReport Message\n* PLMNID: " << payload.cellconfigattribute().ecgi().plmnid() << std::endl;
+    logMsg << "RIC SB reports received CellConfigReport Message\n* PLMNID: " << payload.cellconfigreportattribute().ecgi().plmnid() << std::endl;
 
-    logMsg << "* ECID: " << payload.cellconfigattribute().ecgi().ecid() << std::endl;
-    logMsg << "* PCI: " << payload.cellconfigattribute().pci() << std::endl;
-    for (int index = 0; index < payload.cellconfigattribute().candscells_size(); index++) {
+    logMsg << "* ECID: " << payload.cellconfigreportattribute().ecgi().ecid() << std::endl;
+    logMsg << "* PCI: " << payload.cellconfigreportattribute().pci() << std::endl;
+    for (int index = 0; index < payload.cellconfigreportattribute().candscells_size(); index++) {
         logMsg << "* Cand-Scells (" << index << ")" << std::endl;
-        logMsg << "\t** PCI: " << payload.cellconfigattribute().candscells(index).pci() << std::endl;
-        logMsg << "\t** EARFCN DL: " << payload.cellconfigattribute().candscells(index).earfcndl() << std::endl;
+        logMsg << "\t** PCI: " << payload.cellconfigreportattribute().candscells(index).pci() << std::endl;
+        logMsg << "\t** EARFCN DL: " << payload.cellconfigreportattribute().candscells(index).earfcndl() << std::endl;
     }
-    logMsg << "* EARFCN DL: " << payload.cellconfigattribute().earfcndl() << std::endl;
-    logMsg << "* EARFCN UL: " << payload.cellconfigattribute().earfcnul() << std::endl;
-    logMsg << "* RBS Per TTI DL: " << payload.cellconfigattribute().rbsperttidl() << std::endl;
-    logMsg << "* RBS Per TTI UL: " << payload.cellconfigattribute().rbsperttiul() << std::endl;
-    logMsg << "* Num TX Antennas: " << payload.cellconfigattribute().numtxantenna() << std::endl;
-    logMsg << "* Duplex Mode: " << payload.cellconfigattribute().duplexmode() << std::endl; // 0: fdd, 1: tdd
-    logMsg << "* Max Num Connected UEs: " << payload.cellconfigattribute().maxnumconnectedues() << std::endl;
-    logMsg << "* Max Num Connected Bearers: " << payload.cellconfigattribute().maxnumconnectedbearers() << std::endl;
-    logMsg << "* Max Num UEs Sched Per TTI DL: " << payload.cellconfigattribute().maxnumuesschedperttidl() << std::endl;
-    logMsg << "* Max Num UEs Sched Per TTI UL: " << payload.cellconfigattribute().maxnumuesschedperttiul() << std::endl;
-    logMsg << "* DLFS Sched Enable: " << payload.cellconfigattribute().dlfsschedenable() << std::endl; // 0: false, 255: true
+    logMsg << "* EARFCN DL: " << payload.cellconfigreportattribute().earfcndl() << std::endl;
+    logMsg << "* EARFCN UL: " << payload.cellconfigreportattribute().earfcnul() << std::endl;
+    logMsg << "* RBS Per TTI DL: " << payload.cellconfigreportattribute().rbsperttidl() << std::endl;
+    logMsg << "* RBS Per TTI UL: " << payload.cellconfigreportattribute().rbsperttiul() << std::endl;
+    logMsg << "* Num TX Antennas: " << payload.cellconfigreportattribute().numtxantenna() << std::endl;
+    logMsg << "* Duplex Mode: " << payload.cellconfigreportattribute().duplexmode() << std::endl; // 0: fdd, 1: tdd
+    logMsg << "* Max Num Connected UEs: " << payload.cellconfigreportattribute().maxnumconnectedues() << std::endl;
+    logMsg << "* Max Num Connected Bearers: " << payload.cellconfigreportattribute().maxnumconnectedbearers() << std::endl;
+    logMsg << "* Max Num UEs Sched Per TTI DL: " << payload.cellconfigreportattribute().maxnumuesschedperttidl() << std::endl;
+    logMsg << "* Max Num UEs Sched Per TTI UL: " << payload.cellconfigreportattribute().maxnumuesschedperttiul() << std::endl;
+    logMsg << "* DLFS Sched Enable: " << payload.cellconfigreportattribute().dlfsschedenable() << std::endl; // 0: false, 255: true
 
     APIGWLogDEBUG(logSrv_, logMsg.str().c_str());
     logMsg.str("");
@@ -157,37 +157,37 @@ gRPCServerE2Interface::CallData::updateCellConfigReport(interface::e2::E2Message
     std::map<std::string, std::string> tmpENBMap;
 
     // ECGI
-    tmpEcgiMap[DB_PLMNID_KEY] = payload.cellconfigattribute().ecgi().plmnid();
-    tmpEcgiMap[DB_ECID_KEY] = payload.cellconfigattribute().ecgi().ecid();
+    tmpEcgiMap[DB_PLMNID_KEY] = payload.cellconfigreportattribute().ecgi().plmnid();
+    tmpEcgiMap[DB_ECID_KEY] = payload.cellconfigreportattribute().ecgi().ecid();
     message[DB_ECGI_KEY] = tmpEcgiMap;
     
     // CAND-SCELLS
-    for (int index = 0; index < payload.cellconfigattribute().candscells_size(); index++) {
+    for (int index = 0; index < payload.cellconfigreportattribute().candscells_size(); index++) {
         std::stringstream tmpCandScellKey;
         tmpCandScellKey << DB_CAND_SCELL_KEY << ":" << index;
         tmpCandScellsMap[std::to_string(index)] = tmpCandScellKey.str();
         std::map<std::string, std::string> tmpCandScellMap;
-        tmpCandScellMap[DB_PCI_KEY] = payload.cellconfigattribute().candscells(index).pci();
-        tmpCandScellMap[DB_EARFCN_DL] = payload.cellconfigattribute().candscells(index).earfcndl();
+        tmpCandScellMap[DB_PCI_KEY] = payload.cellconfigreportattribute().candscells(index).pci();
+        tmpCandScellMap[DB_EARFCN_DL] = payload.cellconfigreportattribute().candscells(index).earfcndl();
         message[tmpCandScellKey.str()] = tmpCandScellMap;
     }
     message[DB_CAND_SCELLS_KEY] = tmpCandScellsMap;
 
     // eNB
     tmpENBMap[DB_ECGI_KEY] = DB_ECGI_KEY;
-    tmpENBMap[DB_PCI_KEY] = payload.cellconfigattribute().pci();
+    tmpENBMap[DB_PCI_KEY] = payload.cellconfigreportattribute().pci();
     tmpENBMap[DB_CAND_SCELLS_KEY] = DB_CAND_SCELLS_KEY;
-    tmpENBMap[DB_EARFCN_DL] = payload.cellconfigattribute().earfcndl();
-    tmpENBMap[DB_EARFCN_UL] = payload.cellconfigattribute().earfcnul();
-    tmpENBMap[DB_RBS_PER_TTI_DL] = payload.cellconfigattribute().rbsperttidl();
-    tmpENBMap[DB_RBS_PER_TTI_UL] = payload.cellconfigattribute().rbsperttiul();
-    tmpENBMap[DB_NUM_TX_ANTENNAS] = payload.cellconfigattribute().numtxantenna();
-    tmpENBMap[DB_DUPLEX_MODE] = payload.cellconfigattribute().duplexmode();
-    tmpENBMap[DB_MAX_NUM_CONNECTED_UES] = payload.cellconfigattribute().maxnumconnectedues();
-    tmpENBMap[DB_MAX_NUM_CONNECTED_BEARERS] = payload.cellconfigattribute().maxnumconnectedbearers();
-    tmpENBMap[DB_MAX_NUM_UES_SCHED_PER_TTI_DL] = payload.cellconfigattribute().maxnumuesschedperttidl();
-    tmpENBMap[DB_MAX_NUM_UES_SCHED_PER_TTI_UL] = payload.cellconfigattribute().maxnumuesschedperttiul();
-    tmpENBMap[DB_DFLS_SCHED_ENABLE] = payload.cellconfigattribute().dlfsschedenable();
+    tmpENBMap[DB_EARFCN_DL] = payload.cellconfigreportattribute().earfcndl();
+    tmpENBMap[DB_EARFCN_UL] = payload.cellconfigreportattribute().earfcnul();
+    tmpENBMap[DB_RBS_PER_TTI_DL] = payload.cellconfigreportattribute().rbsperttidl();
+    tmpENBMap[DB_RBS_PER_TTI_UL] = payload.cellconfigreportattribute().rbsperttiul();
+    tmpENBMap[DB_NUM_TX_ANTENNAS] = payload.cellconfigreportattribute().numtxantenna();
+    tmpENBMap[DB_DUPLEX_MODE] = payload.cellconfigreportattribute().duplexmode();
+    tmpENBMap[DB_MAX_NUM_CONNECTED_UES] = payload.cellconfigreportattribute().maxnumconnectedues();
+    tmpENBMap[DB_MAX_NUM_CONNECTED_BEARERS] = payload.cellconfigreportattribute().maxnumconnectedbearers();
+    tmpENBMap[DB_MAX_NUM_UES_SCHED_PER_TTI_DL] = payload.cellconfigreportattribute().maxnumuesschedperttidl();
+    tmpENBMap[DB_MAX_NUM_UES_SCHED_PER_TTI_UL] = payload.cellconfigreportattribute().maxnumuesschedperttiul();
+    tmpENBMap[DB_DFLS_SCHED_ENABLE] = payload.cellconfigreportattribute().dlfsschedenable();
     tmpENBMap[DB_UE_LIST_IN_ENB] = DB_UE_LIST_IN_ENB; // to show UE list - it is not a value in CellConfigReport message
     message[DB_ENB_KEY] = tmpENBMap;
 
