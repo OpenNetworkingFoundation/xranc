@@ -1,0 +1,202 @@
+// Copyright 2020-present Open Networking Foundation
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// This file defines O-RAN E2 interface, which is the interface between an eNB and RIC
+
+syntax = "proto3";
+
+package interface.c1;
+
+service C1InterfaceService {
+    rpc GetRNIB (C1RequestMessage) returns (stream C1ResponseMessage) {}
+    rpc PostRNIB (C1RequestMessage) returns (stream C1ResponseMessage) {}
+}
+
+enum C1MessageType {
+    C1_MESSAGE_UNKNOWN = 0;
+    C1_GET_RNIBCELLS = 1;
+    C1_GET_RNIBUES = 2;
+    C1_GET_RNIBLINKS = 3;
+    C1_POST_HANDOVERS = 4;
+    C1_POST_RMMCONFIGURATION = 5;
+
+    // Can be extended if necessary
+}
+
+enum C1RNIBType {
+    C1_RNIB_UNKNOWN = 0;
+    C1_RNIB_CELL = 1;
+    C1_RNIB_UE = 2;
+    C1_RNIB_LINK = 3;
+
+    // Can be extended if necessary
+}
+
+message C1RequestMessage {
+    C1RequestMessageHeader header = 1;
+    C1RequestMessagePayload payload = 2;
+}
+
+message C1ResponseMessage {
+    C1ResponseMessageHeader header = 1;
+    C1ResponseMessagePayload payload = 2;
+}
+
+message C1RequestMessageHeader {
+    C1MessageType type = 1;
+}
+
+message C1RequestMessagePayload {
+    oneof request {
+        C1RNIBType requestedRNIBType = 1; // for C1_GET_*
+        C1HandoverRequest handoverRequest = 2; // for C1_POST_HANDOVERS
+        C1RRMConfiguration rrmConfigurationRequest = 3; // for C1_POST_RRMCONFIGURATION
+    }
+}
+
+message C1ResponseMessageHeader {
+    C1MessageType type = 1;
+}
+
+message C1ResponseMessagePayload {
+    oneof result {
+        string responseCode = 1; // for POST_*
+        C1RNIBCells rNIBCells = 2; // for GET_RNIBCELLS
+        C1RNIBUEs rNIBUEs = 3; // for GET_RNIBUES
+        C1RNIBLinks rNIBLinks = 4; // for GET_LINKS
+    }
+}
+
+message C1RNIBCells {
+    repeated C1RNIBCell rNIBCells = 1;
+}
+
+message C1RNIBUEs {
+    repeated C1RNIBUE rNIBUEs = 1;
+}
+
+message C1RNIBLinks {
+    repeated C1RNIBLink rNIBLinks = 1;
+}
+
+message C1ECGI {
+    string plmnId = 1;
+    string ecid = 2;
+}
+
+message C1CandScell {
+    string pci = 1;
+    string earfcnDl = 2;
+}
+
+message C1RNIBCell {
+    C1ECGI ecgi = 1; // ID
+    // attributes of R-NIB Cell
+    // for Cell Configuration
+    C1CellConfigAttribute cellConfiguration = 2;
+    // for RRM configuration
+    C1RRMContributionAttribute rrmConfiguration = 3;
+}
+
+message C1CellConfigAttribute {
+    C1ECGI ecgi = 1;
+    string pci = 2;
+    repeated C1CandScell candScells = 3;
+    string earfcnDl = 4;
+    string earfcnUl = 5;
+    string rbsPerTtiDl = 6;
+    string rbsPerTtiUl = 7;
+    string numTxAntenna = 8;
+    string duplexMode = 9;
+    string maxNumConnectedUes = 10;
+    string maxNumConnectedBearers = 11;
+    string maxNumUesSchedPerTtiDl = 12;
+    string maxNumUesSchedPerTtiUl = 13;
+    string dlfsSchedEnable = 14;
+}
+
+message C1PciArfcn {
+    string pci = 1;
+    string earfcnDl = 2;
+}
+
+enum C1XICICPA {
+    C1_XICIC_PA_DB_MINUS6 = 0;
+    C1_XICIC_PA_DB_MINUX4DOT77 = 1;
+    C1_XICIC_PA_DB_MINUS3 = 2;
+    C1_XICIC_PA_DB_MINUS1DOT77 = 3;
+    C1_XICIC_PA_DB_0 = 4;
+    C1_XICIC_PA_DB_1 = 5;
+    C1_XICIC_PA_DB_2 = 6;
+    C1_XICIC_PA_DB_3 = 7;
+}
+
+// This attributed defined all elements as a list (repeated), but this list only has a single element for MWC demo -> will be extended
+message C1RRMContributionAttribute {
+    repeated string crnti = 1; // going to be FFFF or null, which means all crnti
+    C1PciArfcn pciArfcn = 2;
+    repeated C1XICICPA pa = 3;
+    repeated string startPrbDl = 4;
+    repeated string endPrbDl = 5;
+    repeated string subFrameBitmaskDl = 6;
+    repeated string p0UePusch = 7;
+    repeated string startPrbUl = 8;
+    repeated string endPrbUl = 9;
+    repeated string subFrameBitmaskUl = 10;
+}
+
+message C1RNIBUE {
+    string imsi = 1; // ID
+    // attributes of R-NIB UE
+    string crnti = 2;
+    C1ECGI sCell = 3;
+    string mmeUeS1apId = 4;
+    string enbUeS1apId = 5;
+}
+
+message C1RNIBLinkID {
+    C1ECGI ecgi = 1;
+    string imsi = 2;
+}
+
+// either serving cell or neighbor cell report
+message C1RadioRepPerServCellAttribute {
+    C1ECGI ecgi = 1;
+    repeated string cqiHist = 2;
+    repeated string riHist = 3;
+    repeated string puschSinrHist = 4;
+    repeated string pucchSinrHist = 5;
+}
+
+message C1RadioMeasReportPerUeAttribute {
+    repeated C1RadioRepPerServCellAttribute radioRepPerServCell = 1;
+}
+
+message C1RNIBLink {
+    C1RNIBLinkID linkId = 1; // ID
+    // attributes of R-NIB Link
+    C1RadioMeasReportPerUeAttribute radioMeasReportPerUe = 2;
+}
+
+message C1HandoverRequest {
+    // UE in links[index] should be moved from srcCells[index] to dstCell[index]
+    C1RNIBLinks links = 1;
+    C1RNIBCells srcCells = 2;
+    C1RNIBCells dstCells = 3;
+}
+
+message C1RRMConfiguration {
+    // targetCells[index] should have the offset pa which MLB app assigns; pa value in targetCell[index] is the new value to update on RNIBCell
+    C1RNIBCells targetCells = 1; 
+}
