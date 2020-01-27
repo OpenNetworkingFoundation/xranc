@@ -19,7 +19,7 @@ syntax = "proto3";
 package interface.e2;
 
 service E2InterfaceService {
-    rpc UpdateAttribute (E2Message) returns (ServiceResult) {}
+    rpc Send (stream E2Message) returns (stream ServiceResult) {}
 
     // Can be extended if necessary
 }
@@ -68,9 +68,9 @@ enum E2MessageType {
 
 // Message header
 message E2MessageHeader {
-    string sourceID = 1;
-    string destinationID = 2;
-    E2MessageType messageType = 3;
+    E2MessageType messageType = 1;
+
+    // Can be extended if necessary
 }
 
 // Message payload; one of attributes defined below
